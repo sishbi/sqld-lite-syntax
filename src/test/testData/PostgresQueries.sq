@@ -1,0 +1,133 @@
+-- Written for this plugin's tests. Every query here holds a construct the overlay grammar has to
+-- parse and core SQL rejects. SqdCodePostgresDialectTest lists them.
+
+import com.example.library.EditionId;
+import com.example.library.Price;
+
+CREATE TABLE catalogue_entries (
+    id UUID NOT NULL PRIMARY KEY,
+    edition_id UUID AS EditionId NOT NULL,
+    branch_id UUID NOT NULL,
+    publisher VARCHAR(255) NOT NULL,
+    price INT AS Price NOT NULL,
+    payload JSONB NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+upsert:
+INSERT INTO catalogue_entries (id, edition_id, branch_id, publisher, price, payload, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT (edition_id)
+DO UPDATE SET publisher = EXCLUDED.publisher, price = :price;
+
+insertIgnoringDuplicates:
+INSERT INTO catalogue_entries (id, edition_id, branch_id, publisher, price, payload, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT (edition_id) DO NOTHING;
+
+insertReturningRow:
+INSERT INTO catalogue_entries (id, edition_id, branch_id, publisher, price, payload, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?)
+RETURNING *;
+
+findLatestPerBranch:
+SELECT DISTINCT ON (branch_id) branch_id, edition_id, id AS entry_id
+FROM catalogue_entries
+WHERE created_at >= :fromDate
+ORDER BY branch_id, created_at;
+
+findCastToTimestamp:
+SELECT * FROM catalogue_entries
+WHERE created_at < '2026-01-01 00:00:00.000000 +00:00'::timestamptz;
+
+findByPayloadFormat:
+SELECT * FROM catalogue_entries
+WHERE payload->>'format' = :format
+AND DATE(created_at AT TIME ZONE 'Europe/London') >= DATE '2026-07-15';
+
+findWithLateral:
+SELECT catalogue_entries.id, latest.created_at
+FROM catalogue_entries
+INNER JOIN LATERAL (
+    SELECT created_at
+    FROM catalogue_entries inner_entries
+    WHERE inner_entries.id = catalogue_entries.id
+) AS latest ON TRUE;
+
+insertThenSelect:
+WITH created_entry AS (
+    INSERT INTO catalogue_entries (id, payload, created_at)
+    VALUES (:id, :payload, CURRENT_TIMESTAMP)
+    RETURNING id
+)
+SELECT id FROM created_entry;
+
+membersToRemind:
+SELECT members.*
+FROM members
+-- a member who has reserved more than once
+JOIN (
+    SELECT member_id
+    FROM reservations
+    GROUP BY member_id
+    HAVING COUNT(*) >= 2
+) AS repeat_holders ON repeat_holders.member_id = members.id
+-- the most recent reservation at one of the requested :branches, if it was held or expired
+LEFT JOIN (
+    SELECT *
+    FROM (
+        SELECT *, row_number() OVER (PARTITION BY member_id ORDER BY created DESC) AS pos
+        FROM reservations
+        WHERE branch IN :branches
+    ) AS ranked
+    WHERE ranked.pos < 2 AND ranked.state IN ('HELD', 'EXPIRED')
+) AS latest ON latest.member_id = members.id
+WHERE
+    members.is_closed != TRUE
+    -- exclude a member who already reserved this month
+    AND NOT EXISTS (
+        SELECT 1
+        FROM reservations
+        WHERE
+            reservations.member_id = members.id
+            AND DATE(reservations.created AT TIME ZONE 'UTC') > CURRENT_DATE - interval '30 days'
+            AND reservations.branch IN :branches
+    )
+    -- staff accounts are excluded by configuration, not by rule
+    AND (:excludeStaff = FALSE OR lower(members.email) NOT LIKE '%@example.com')
+    ORDER BY latest.created DESC NULLS LAST, members.joined ASC
+    LIMIT :limit;
+
+findTodaysTimeouts:
+SELECT *
+FROM reservations
+WHERE created >= :day_start
+AND created < :day_start + INTERVAL '1 day'
+AND note ILIKE '%timed out%';
+
+markCollected:
+UPDATE reservations
+SET collected = CURRENT_TIMESTAMP
+WHERE id = :id
+AND collected IS NULL
+RETURNING id;
+
+selectMemberReservationsForUpdate:
+SELECT id FROM reservations
+WHERE member_id = :member_id
+ORDER BY id
+FOR UPDATE;
+
+collectedToday:
+SELECT 1 FROM reservations
+WHERE member_id = :member_id
+AND DATE(collected AT TIME ZONE 'UTC') = DATE(now() AT TIME ZONE 'UTC')
+LIMIT 1;
+
+groupedUpsert {
+    UPDATE catalogue_entries SET payload = :payload WHERE id = :id;
+
+    INSERT INTO catalogue_entries (id, payload, created_at)
+    VALUES (:id, :payload, CURRENT_TIMESTAMP)
+    ON CONFLICT (id) DO NOTHING;
+}

@@ -1,0 +1,13 @@
+[versions]
+junit = "4.13.2"
+# SQL grammar, lexer and PSI. 0.8.0 is tagged upstream but is not published to any repository.
+sqlPsi = "0.7.3"
+# The IDE this plugin targets and is verified against.
+intellijIdea = "2026.2.2"
+# Only feeds GrammarKit's own generator classpath at build time. Unrelated to what the plugin
+# targets or ships against. Same build the SqlDelight dialects generate with.
+grammarKitGenerator = "233.14808.21"
+
+[libraries]
+junit = { module = "junit:junit", version.ref = "junit" }
+sql-psi = { module = "app.cash.sql-psi:core", version.ref = "sqlPsi" }

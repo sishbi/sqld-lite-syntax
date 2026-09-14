@@ -1,0 +1,27 @@
+updateStatus:
+UPDATE book_loans
+SET status = :status
+WHERE loan_id = :loan_id;
+
+markRequestedLoansAsCancelled:
+UPDATE book_loans
+SET status = 'CANCELLED'
+WHERE member_id = :member_id
+AND status = 'REQUESTED';
+
+findMembersWithOpenLoans:
+SELECT DISTINCT branch_name, title, member_id
+FROM book_loans
+WHERE status IN ('REQUESTED', 'ON_LOAN');
+
+findByLoanId:
+SELECT branch_name, title, member_id, loan_id, status, renewals
+FROM book_loans
+WHERE loan_id = :loan_id
+ORDER BY created ASC;
+
+findByMemberId:
+SELECT branch_name, title, member_id, loan_id, status, renewals
+FROM book_loans
+WHERE member_id = :member_id
+ORDER BY created ASC;

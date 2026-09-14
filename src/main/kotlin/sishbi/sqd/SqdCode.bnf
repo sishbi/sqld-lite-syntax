@@ -1,0 +1,349 @@
+// Overlay grammar for SqlDelight syntax, composed on top of app.cash.sql-psi:core.
+//
+// Only the rules that differ from core SQL are declared here. sql-psi exposes each rule as a
+// replaceable parser, so every rule not declared here still parses as sql-psi parses it. The rules
+// marked `override` are the ones SqdCodeParserUtil.overrideSqlParser swaps in; the rest are reached
+// because an overriding rule calls them. SqdCodePostgresDialectTest names the constructs they add.
+//
+// Modelled on sqldelight.bnf and PostgreSql.bnf from https://github.com/sqldelight/sqldelight, both
+// Apache-2.0, but not a port of either.
+//
+// Traps, all of which fail silently rather than erroring:
+//   - The composer reads this file line by line and has no idea what a comment is. Keep every
+//     comment above this point. A comment between two rules is appended to the rule before it and
+//     its words are parsed as grammar.
+//   - `overrides` in the header must have no spaces around its `=`, or no override code is
+//     generated at all. The `override` attribute on an individual rule below is a different thing
+//     and is matched separately, which is why it is spaced. Do not "tidy" either to match.
+//   - The first rule in the file becomes the grammar root. Keep `overrides` first.
+//   - A rule replacing a parent rule must repeat the parent's mixin, extends, implements,
+//     elementTypeClass and stubClass, or the parent's own PSI code throws inside the IDE. That
+//     means the parent in sql-psi, not whatever PostgreSql.bnf carries.
+//   - A rule whose parent carries a stubClass needs its own element type and a second
+//     stubElementTypeHolder registration in plugin.xml. See SqdCodeCreateIndexElementType.
+//   - A quoted literal is matched by token text, not by token type, and may span several tokens.
+//     That is how ':', '?' and '::' parse at all: the sql-psi lexer has no rule for a colon, so
+//     each one arrives as a bad character.
+{
+  overrides="com.alecstrong.sql.psi.core.SqlParser"
+  elementTypeClass="com.alecstrong.sql.psi.core.SqlElementType"
+  psiClassPrefix="SqdCode"
+
+  implements="com.alecstrong.sql.psi.core.psi.SqlCompositeElement"
+  extends="com.alecstrong.sql.psi.core.psi.SqlCompositeElementImpl"
+
+  parserImports=[
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.ADD"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.ALL"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.CREATE"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.DISTINCT"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.FROM"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.HAVING"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.INDEX"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.SELECT"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.VALUES"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.COMMA"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.LP"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.RP"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.ALTER"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.AS"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.COLUMN"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.CONFLICT"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.CONSTRAINT"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.DO"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.DROP"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.EXISTS"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.IF"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.INSERT"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.INTO"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.JAVADOC"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.NOT"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.NOTHING"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.NULL"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.ON"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.OR"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.RENAME"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.REPLACE"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.SET"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.TO"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.UNIQUE"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.UPDATE"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.WHERE"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.WITH"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.WITHOUT"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.AND"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.ASC"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.ABORT"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.BETWEEN"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.BY"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.COLLATE"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.DELETE"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.DESC"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.FAIL"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.FOR"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.GLOB"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.GROUP"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.IGNORE"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.KEY"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.LIKE"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.LIMIT"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.MATCH"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.NO"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.OFFSET"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.ORDER"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.PARTITION"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.REGEXP"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.ROLLBACK"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.ROW"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.OF"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.ALWAYS"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.DEFAULT"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.GENERATED"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.PRIMARY"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.USING"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.CROSS"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.INNER"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.JOIN"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.NATURAL"
+    "static com.alecstrong.sql.psi.core.psi.SqlTypes.OUTER"
+  ]
+}
+overrides ::= stmt_list | bind_parameter | column_type | type_name | alter_table_rules | insert_stmt | create_index_stmt | select_stmt | extension_expr | compound_select_stmt | update_stmt_limited | delete_stmt_limited | binary_like_operator | ordering_term | column_constraint | default_constraint | generated_clause | alter_table_add_column | extension_stmt | with_clause_auxiliary_stmt | join_operator
+
+stmt_list ::= import_stmt_list ( stmt_identifier ( grouped_stmt | terminated_stmt ) ) * {
+  implements="com.alecstrong.sql.psi.core.psi.SqlStmtList"
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlStmtListImpl"
+  pin(".*")=2
+  override = true
+}
+
+stmt_identifier ::= [ JAVADOC ] [ {identifier} [ ':' ] ] {
+  mixin="sishbi.sqd.SqdCodeStmtIdentifierMixin"
+}
+
+bind_parameter ::= '?' | ':' {identifier} {
+  mixin="sishbi.sqd.SqdCodeBindParameterMixin"
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlBindParameterImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlBindParameter"
+  override = true
+}
+
+import_stmt_list ::= import_stmt *
+
+import_stmt ::= 'import' java_type ';' {
+  pin = 1
+}
+
+column_type ::= {type_name} [ AS java_type_name ] {
+  implements="com.alecstrong.sql.psi.core.psi.SqlColumnType"
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlColumnTypeImpl"
+  override = true
+}
+
+java_type_name ::= java_type [ '<' java_type_name ( ',' java_type_name ) * '>' ]
+
+java_type ::= ( {identifier} '.' ) * {identifier} {
+  mixin="sishbi.sqd.SqdCodeJavaTypeMixin"
+}
+
+type_name ::= ( 'DOUBLE' 'PRECISION' | {identifier} ) [ '(' {signed_number} [ ',' {signed_number} ] ')' ] [ ( WITH | WITHOUT ) 'TIME' 'ZONE' ] [ '[]' ] {
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlTypeNameImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlTypeName"
+  override = true
+}
+
+alter_table_rules ::= ( {alter_table_add_column} | {alter_table_rename_table} | alter_table_rename_column | alter_table_drop_constraint | alter_table_drop_column | alter_table_add_constraint | alter_table_alter_column ) {
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlAlterTableRulesImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlAlterTableRules"
+  override = true
+}
+
+alter_table_rename_column ::= RENAME [ COLUMN ] {column_name} TO {column_name} {
+  pin = 4
+}
+
+alter_table_drop_column ::= DROP [ COLUMN ] [ IF EXISTS ] {column_name} {
+  pin = 2
+}
+
+alter_table_drop_constraint ::= DROP CONSTRAINT [ IF EXISTS ] {identifier} {
+  pin = 2
+}
+
+alter_table_add_constraint ::= ADD {table_constraint}
+
+alter_table_alter_column ::= ALTER [ COLUMN ] {column_name} ( [ SET 'DATA' ] 'TYPE' {column_type} [ USING <<expr '-1'>> ] | ( SET | DROP ) NOT NULL | SET default_constraint | DROP DEFAULT | DROP 'IDENTITY' [ IF EXISTS ] | ADD generated_clause ) {
+  pin = 1
+}
+
+insert_stmt ::= [ {with_clause} ] ( INSERT OR REPLACE | REPLACE | INSERT OR 'ROLLBACK' | INSERT OR 'ABORT' | INSERT OR 'FAIL' | INSERT OR 'IGNORE' | INSERT ) INTO [ {database_name} '.' ] {table_name} [ AS {table_alias} ] [ '(' {column_name} ( ',' {column_name} ) * ')' ] {insert_stmt_values} [ ON CONFLICT [ conflict_target ] ( DO NOTHING | DO UPDATE SET conflict_set ( ',' conflict_set ) * [ WHERE <<expr '-1'>> ] ) ] [ returning_clause ] {
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlInsertStmtImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlInsertStmt"
+  override = true
+  pin = 5
+}
+
+conflict_target ::= '(' {column_name} ( ',' {column_name} ) * ')'
+
+conflict_set ::= {column_name} '=' <<expr '-1'>>
+
+returning_clause ::= 'RETURNING' {result_column} ( ',' {result_column} ) * {
+  pin = 1
+}
+
+extension_expr ::= double_colon_cast_expr | window_function_expr | at_time_zone_operator_expression | json_expression | interval_expression | typed_literal_expression {
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlExtensionExprImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlExtensionExpr"
+  override = true
+}
+
+double_colon_cast_expr ::= ( {bind_expr} | {literal_expr} | {function_expr} | {column_expr} ) ( '::' {type_name} ) + {
+  pin = 2
+}
+
+select_stmt ::= SELECT ( distinct_on_expr | [ DISTINCT | ALL ] ) {result_column} ( COMMA {result_column} ) * [ FROM {join_clause} ] [ WHERE <<expr '-1'>> ] [ {group_by} ] [ HAVING <<expr '-1'>> ] | VALUES {values_expression} ( COMMA {values_expression} ) * {
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlSelectStmtImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlSelectStmt"
+  override = true
+  pin = 1
+}
+
+distinct_on_expr ::= DISTINCT ON LP {result_column} ( COMMA {result_column} ) * RP
+
+create_index_stmt ::= CREATE [ UNIQUE ] INDEX [ 'CONCURRENTLY' ] [ IF NOT EXISTS ] [ {database_name} '.' ] {index_name} ON {table_name} [ USING index_method ] LP {indexed_column} ( COMMA {indexed_column} ) * RP [ WHERE <<expr '-1'>> ] {
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlCreateIndexStmtImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlCreateIndexStmt"
+  elementTypeClass="sishbi.sqd.SqdCodeCreateIndexElementType"
+  stubClass="com.alecstrong.sql.psi.core.psi.SchemaContributorStub"
+  override = true
+  pin = 6
+}
+
+interval_expression ::= 'INTERVAL' {string_literal}
+
+at_time_zone_operator ::= 'AT' 'TIME' 'ZONE' <<expr '-1'>>
+
+at_time_zone_operator_expression ::= ( {literal_expr} | {cast_expr} | {function_expr} | {column_expr} ) at_time_zone_operator ( at_time_zone_operator ) * {
+  pin = 2
+}
+
+window_function_expr ::= {function_expr} ( [ 'FILTER' LP WHERE <<expr '-1'>> RP ] 'OVER' ( window_defn | window_name ) | 'WITHIN' GROUP LP ORDER BY <<expr '-1'>> ( COMMA <<expr '-1'>> ) * RP )
+
+window_name ::= {identifier}
+
+window_defn ::= LP [ {identifier} ] [ PARTITION BY <<expr '-1'>> ( COMMA <<expr '-1'>> ) * ] [ ORDER BY ordering_term ( COMMA ordering_term ) * ] [ frame_spec ] RP {
+  pin = 1
+}
+
+frame_spec ::= ( 'RANGE' | 'ROWS' | 'GROUPS' ) ( BETWEEN ( 'UNBOUNDED' 'PRECEDING' | 'CURRENT' ROW | <<expr '-1'>> 'PRECEDING' | <<expr '-1'>> 'FOLLOWING' ) AND ( 'UNBOUNDED' 'FOLLOWING' | 'CURRENT' ROW | <<expr '-1'>> 'PRECEDING' | <<expr '-1'>> 'FOLLOWING' ) | 'UNBOUNDED' 'PRECEDING' | 'CURRENT' ROW | <<expr '-1'>> 'PRECEDING' ) [ 'EXCLUDE' NO 'OTHERS' | 'EXCLUDE' 'CURRENT' ROW | 'EXCLUDE' GROUP | 'EXCLUDE' 'TIES' ] {
+  pin = 1
+}
+
+binary_like_operator ::= ( 'ILIKE' | LIKE | GLOB | REGEXP | MATCH ) {
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlBinaryLikeOperatorImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlBinaryLikeOperator"
+  override = true
+}
+
+ordering_term ::= <<expr '-1'>> [ COLLATE {collation_name} ] [ ASC | DESC ] [ 'NULLS' ( 'FIRST' | 'LAST' ) ] {
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlOrderingTermImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlOrderingTerm"
+  override = true
+}
+
+for_locking_strength ::= UPDATE | NO KEY UPDATE | 'SHARE' | KEY 'SHARE'
+
+for_locking_reference ::= [ {database_name} '.' ] {identifier}
+
+for_locking_clause ::= FOR for_locking_strength [ OF for_locking_reference ( COMMA for_locking_reference ) * ] [ 'NOWAIT' | 'SKIP' 'LOCKED' ] {
+  pin = 1
+}
+
+compound_select_stmt ::= [ {with_clause} ] {select_stmt} ( {compound_operator} {select_stmt} ) * [ ORDER BY {ordering_term} ( COMMA {ordering_term} ) * ] [ LIMIT {limiting_term} ] [ ( OFFSET | COMMA ) {limiting_term} ] ( for_locking_clause ) * {
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlCompoundSelectStmtImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlCompoundSelectStmt"
+  override = true
+}
+
+private sqd_update_set_clause ::= SET ( ( {column_name} '=' {setter_expression} {update_stmt_subsequent_setter} * ) | ( LP {column_name} ( COMMA {column_name} ) * RP ) '=' ( LP {setter_expression} ( COMMA {setter_expression} ) * RP ) ) {
+  pin(".*") = 1
+}
+
+update_stmt_limited ::= [ {with_clause} ] UPDATE [ OR ROLLBACK | OR ABORT | OR REPLACE | OR FAIL | OR IGNORE ] {qualified_table_name} sqd_update_set_clause [ FROM {join_clause} ] [ WHERE <<expr '-1'>> ] [ [ ORDER BY {ordering_term} ( COMMA {ordering_term} ) * ] LIMIT <<expr '-1'>> [ ( OFFSET | COMMA ) <<expr '-1'>> ] ] [ returning_clause ] {
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlUpdateStmtLimitedImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlUpdateStmtLimited"
+  override = true
+  pin = 4
+}
+
+delete_stmt_limited ::= [ {with_clause} ] DELETE FROM {qualified_table_name} [ WHERE <<expr '-1'>> ] [ [ ORDER BY {ordering_term} ( COMMA {ordering_term} ) * ] LIMIT <<expr '-1'>> [ ( OFFSET | COMMA ) <<expr '-1'>> ] ] [ returning_clause ] {
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlDeleteStmtLimitedImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlDeleteStmtLimited"
+  override = true
+  pin = 2
+}
+
+index_method ::= 'BRIN' | 'BTREE' | 'GIN' | 'GIST' | 'HASH'
+
+identity_clause ::= 'IDENTITY' [ LP [ 'SEQUENCE' 'NAME' {identifier} ] RP ]
+
+generated_clause ::= GENERATED ( ALWAYS AS LP <<expr '-1'>> RP 'STORED' | ( ALWAYS | BY DEFAULT ) AS identity_clause ) {
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlGeneratedClauseImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlGeneratedClause"
+  override = true
+}
+
+default_constraint ::= [ NOT NULL | NULL ] DEFAULT ( {signed_number} | {literal_value} | {function_expr} | LP <<expr '-1'>> RP ) {
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlDefaultConstraintImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlDefaultConstraint"
+  override = true
+  pin = 2
+}
+
+column_constraint ::= [ CONSTRAINT {identifier} ] ( PRIMARY KEY [ ASC | DESC ] [ {conflict_clause} ] [ 'AUTOINCREMENT' ] | [ NOT ] NULL [ {conflict_clause} ] | UNIQUE [ {conflict_clause} ] | {check_constraint} | generated_clause | default_constraint | COLLATE {collation_name} | {foreign_key_clause} ) {
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlColumnConstraintImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlColumnConstraint"
+  override = true
+}
+
+alter_table_add_column ::= ADD [ COLUMN ] [ IF NOT EXISTS ] {column_def} {
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlAlterTableAddColumnImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlAlterTableAddColumn"
+  override = true
+}
+
+set_stmt ::= SET [ 'SESSION' | 'LOCAL' ] {identifier} ( '=' | TO ) ( {literal_value} | {signed_number} | {identifier} | DEFAULT ) {
+  pin = 1
+}
+
+extension_stmt ::= set_stmt {
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlExtensionStmtImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlExtensionStmt"
+  override = true
+}
+
+json_expression ::= ( {bind_expr} | {literal_expr} | {function_expr} | {column_expr} ) ( '->>' | '->' | '#>>' | '#>' | '#-' ) <<expr '-1'>> {
+  pin = 2
+}
+
+typed_literal_expression ::= ( 'TIMESTAMPTZ' | 'TIMESTAMP' | 'DATE' | 'TIME' ) {string_literal}
+
+join_operator ::= ( COMMA [ 'LATERAL' ] | [ NATURAL ] [ {left_join_operator} [ OUTER ] | INNER | CROSS ] JOIN [ 'LATERAL' ] ) {
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlJoinOperatorImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlJoinOperator"
+  override = true
+}
+
+with_clause_auxiliary_stmt ::= {compound_select_stmt} | insert_stmt | update_stmt_limited | delete_stmt_limited {
+  extends="com.alecstrong.sql.psi.core.psi.impl.SqlWithClauseAuxiliaryStmtImpl"
+  implements="com.alecstrong.sql.psi.core.psi.SqlWithClauseAuxiliaryStmt"
+  override = true
+}
+
+private terminated_stmt ::= {stmt} ';' {
+  pin = 1
+}
+
+private grouped_stmt ::= '{' ( {stmt} ';' ) * '}' {
+  pin = 1
+}

@@ -1,0 +1,8 @@
+ALTER TABLE book_loans
+ADD COLUMN renewals INTEGER;
+
+ALTER TABLE book_loans
+ADD COLUMN last_note TEXT;
+
+CREATE INDEX book_loans_status
+ON book_loans(status);

@@ -1,0 +1,78 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
+    <id>sishbi.sqd-code</id>
+
+    <!-- Public plugin name should be written in Title Case.
+     Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-name -->
+    <name>SQD-Code - SqlDelight Code Formatting</name>
+
+    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+    <vendor url="https://github.com/sishbi">sishbi</vendor>
+
+    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-description -->
+    <description><![CDATA[
+        Type formatting and code navigation for SqlDelight .sq and .sqm files.
+        ]]></description>
+
+    <!-- Product and plugin compatibility requirements.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>org.jetbrains.kotlin</depends>
+
+    <resource-bundle>messages.SqdCodeMessageBundle</resource-bundle>
+
+    <!-- Extensions defined by the plugin.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType name="SqdCode" language="SqdCode" extensions="sq;sqm"
+                  implementationClass="sishbi.sqd.SqdCodeFileType" fieldName="INSTANCE"/>
+        <lang.parserDefinition language="SqdCode"
+                               implementationClass="sishbi.sqd.SqdCodeParserDefinition"/>
+        <lang.syntaxHighlighterFactory language="SqdCode"
+                                       implementationClass="sishbi.sqd.SqdCodeSyntaxHighlighterFactory"/>
+        <annotator language="SqdCode" implementationClass="sishbi.sqd.SqdCodeHighlightAnnotator"/>
+        <colorSettingsPage implementation="sishbi.sqd.SqdCodeColorSettingsPage"/>
+        <fileBasedIndex implementation="sishbi.sqd.SqdCodeLabelIndex"/>
+        <gotoDeclarationHandler implementation="sishbi.sqd.SqdCodeGotoDeclarationHandler"/>
+        <gotoDeclarationHandler implementation="sishbi.sqd.SqdCodeSqGotoDeclarationHandler"/>
+        <targetElementEvaluator language="SqdCode"
+                                implementationClass="sishbi.sqd.SqdCodeTargetElementEvaluator"/>
+        <lang.findUsagesProvider language="SqdCode"
+                                 implementationClass="sishbi.sqd.SqdCodeFindUsagesProvider"/>
+        <findUsagesHandlerFactory implementation="sishbi.sqd.SqdCodeFindUsagesHandlerFactory"/>
+        <customUsageSearcher implementation="sishbi.sqd.SqdCodeGeneratedQueryUsageSearcher"/>
+        <usageTypeProvider implementation="sishbi.sqd.SqdCodeUsageTypeProvider"/>
+        <lang.sliceProvider language="SqdCode" implementationClass="sishbi.sqd.SqdCodeSliceProvider"/>
+        <callHierarchyProvider language="SqdCode"
+                               implementationClass="sishbi.sqd.SqdCodeCallHierarchyProvider"/>
+        <codeInsight.lineMarkerProvider language="SqdCode"
+                                        implementationClass="sishbi.sqd.SqdCodeCallerLineMarkerProvider"/>
+        <localInspection language="SqdCode" shortName="SqdCodeUnusedQuery"
+                         bundle="messages.SqdCodeMessageBundle"
+                         key="inspection.unused.query.name"
+                         groupKey="inspection.group.name"
+                         enabledByDefault="true" level="WARNING"
+                         implementationClass="sishbi.sqd.SqdCodeUnusedQueryInspection"/>
+        <stubIndex implementation="com.alecstrong.sql.psi.core.psi.SchemaContributorIndexImpl"/>
+        <!-- DevKit reads any attribute named "class" as an implementation class and asks for a
+             StubElementTypeHolderEP. This extension point binds "class" as a plain String naming
+             the element type holder, so both registrations below are correct as written. -->
+        <!--suppress PluginXmlValidity -->
+        <stubElementTypeHolder class="com.alecstrong.sql.psi.core.psi.SqlTypes"
+                               externalIdPrefix="SqdCode.TYPES"/>
+        <!-- The overlay grammar replaces create_index_stmt, which is stub-backed. Without this the
+             stub index cannot resolve the element type and every index in the project is lost. -->
+        <!--suppress PluginXmlValidity -->
+        <stubElementTypeHolder class="sishbi.sqd.psi.SqdCodeTypes"
+                               externalIdPrefix="SqdCode.OVERLAY"/>
+    </extensions>
+    <!-- DevKit marks this extension point for removal, saying K2 is now the default. The Plugin
+         Verifier still fails a plugin that depends on the Kotlin plugin and omits it, and the
+         verifier is the release gate, so it stays until the verifier stops asking. -->
+    <extensions defaultExtensionNs="org.jetbrains.kotlin">
+        <!--suppress PluginXmlValidity -->
+        <supportsKotlinPluginMode supportsK2="true"/>
+    </extensions>
+</idea-plugin>

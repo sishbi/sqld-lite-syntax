@@ -1,0 +1,14 @@
+<html lang="en">
+<body>
+Reports a query label in a <code>.sq</code> or <code>.sqm</code> file that no Kotlin code calls.
+<p>
+    SqlDelight generates a function for every labelled query. A label with no call site generates a
+    function nobody uses, and Go To Declaration on it reaches nothing. This inspection greys the
+    label out, so an unused query reads as unused rather than as a failed jump.
+</p>
+<p>
+    The search looks for a call on a generated <code>...Queries</code> class whose name matches the
+    label. A query called only through reflection is therefore reported as unused.
+</p>
+</body>
+</html>
