@@ -78,6 +78,11 @@ the attribute rules and the traps, all of which fail silently.
   `collectSlowLineMarkers`.
 - The plugin registers a file type, a parser definition and stub element type holders, so it cannot
   be hot-reloaded. Restart the sandbox IDE after a change.
+- The icon on a Find Usages target line comes from `NavigationItem.getPresentation()` on the target
+  element, never from `getIcon(flags)` and never through the `itemPresentationProvider` extension
+  point. `PsiElement2UsageTargetAdapter` reads the presentation directly, so the extension point is
+  never consulted. `PsiElementBase.getPresentation()` returns null, which is why a sql-psi name
+  element shows no icon: the fix must be a `getPresentation()` override on the element class itself.
 
 ## Commands
 
@@ -86,7 +91,3 @@ the attribute rules and the traps, all of which fail silently.
 | `./gradlew test` | Unit tests. |
 | `./gradlew verifyPlugin` | Plugin Verifier against the target build. |
 | `./gradlew runIde` | Sandbox IDE with the plugin installed. This is the development loop. |
-
-## Git
-
-Commit as the work goes, without being prompted. This repository only.
