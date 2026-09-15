@@ -15,11 +15,13 @@ class SqldLiteFile(viewProvider: FileViewProvider) : SqlFileBase(viewProvider, S
      * dies of a `StackOverflowError`.
      *
      * The number is the first run of digits in the name, which covers both `1.sqm` and the
-     * timestamped `V<number>__<description>.sqm` that Flyway-style projects use.
+     * timestamped `V<number>__<description>.sqm` that Flyway-style projects use. A name holding no
+     * digits falls back to zero rather than to null, because a migration numbered wrongly resolves
+     * some names incompletely, while a migration numbered not at all crashes the IDE.
      */
     override val order: Long? by lazy {
         if (!name.endsWith(".sqm")) return@lazy null
-        name.dropWhile { !it.isDigit() }.takeWhile { it.isDigit() }.toLongOrNull()
+        name.dropWhile { !it.isDigit() }.takeWhile { it.isDigit() }.toLongOrNull() ?: 0L
     }
 
     override fun getFileType() = SqldLiteFileType

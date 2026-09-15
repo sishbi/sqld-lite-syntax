@@ -1,7 +1,7 @@
 -- Written for this plugin's tests. Every statement here holds a construct the overlay grammar has
 -- to parse and core SQL rejects. SqldLitePostgresDialectTest lists them.
 
-import com.example.library.ReservationState;
+import sishbi.sqldlite.fixtures.ReservationState;
 
 SET LOCAL lock_timeout = '3s';
 

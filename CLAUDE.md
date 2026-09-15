@@ -18,7 +18,8 @@ the official SqlDelight IntelliJ plugin.
 | `src/main/kotlin/sishbi/sqldlite/SqldLite.bnf` | The overlay grammar, composed against the sql-psi grammar. |
 | `src/main/resources/META-INF/plugin.xml` | Extension registrations. |
 | `src/main/resources/messages/SqldLiteMessageBundle.properties` | Every user-visible string. |
-| `src/test/resources/` | `.sq` and `.sqm` fixtures. |
+| `src/test/resources/` | `.sq` and `.sqm` fixtures. A `.sqm` fixture is named for its number, as a real migration is. |
+| `src/test/kotlin/sishbi/sqldlite/fixtures/` | Kotlin that stands in for the generated queries class, so navigation can be tried by hand. |
 | `.ai-local-plans/` | Plans and drafts. Git-ignored. |
 
 ## Adding a grammar rule
@@ -60,7 +61,10 @@ the attribute rules and the traps, all of which fail silently.
   only from the statements before the one it is reading, and only from migrations numbered lower,
   and it reads that number from `order`. A null there makes every `ALTER TABLE` ask the table it
   alters for its columns, which asks that same `ALTER TABLE` back, and the IDE dies of a
-  `StackOverflowError`.
+  `StackOverflowError`. Deriving the number from the file name is not enough on its own: a name
+  holding no digits gave a null and brought the crash back. `SqldLiteFile.order` now falls back to
+  zero, because a migration numbered wrongly resolves some names incompletely, while a migration
+  numbered not at all crashes the IDE.
 - sql-psi resolves a table, view or column across files through `SchemaContributorIndex`, a stub
   index. The file node type must be an `IStubFileElementType` or the file contributes nothing to it,
   and every name resolves only inside its own file. Nothing reports this: the resolution just

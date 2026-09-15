@@ -29,6 +29,20 @@ per distinct named argument in first-mention order; a named Kotlin argument matc
 A query mixing in a positional `?` is skipped, because SqlDelight then names that parameter after
 its column.
 
+## Screenshots
+
+Highlighting, and the Editor | Color Scheme | SqlDelight page that names every colour:
+
+![The SqlDelight colour scheme page, with a .sq preview](docs/images/colour-scheme-page.png)
+
+Find Usages on a table, reporting its whole history under named groups:
+
+![Find Usages on a table name, grouped by schema definition and statement](docs/images/find-usages-table.png)
+
+The gutter icon has its own entry under Settings | Editor | General | Gutter Icons:
+
+![The SqlD-Lite Syntax entry on the Gutter Icons page](docs/images/gutter-icon-setting.png)
+
 ## Requirements
 
 - IntelliJ IDEA 2026.2.2, build `IU-262.10315.125`.
