@@ -175,6 +175,15 @@ jobs:
         with:
           cache-read-only: true
 
+      # The ZIP the build job already produced. It is attached to the draft rather than uploaded
+      # after publication, because release immutability forbids changing the assets of a published
+      # release. Attaching it here also means the exact artefact can be tested before publishing.
+      - name: Download Plugin Distribution
+        uses: actions/download-artifact@v7
+        with:
+          name: plugin-distribution
+          path: ./build/distributions
+
       # Remove old release drafts by using the curl request for the available releases with a draft flag
       - name: Remove Old Release Drafts
         env:
@@ -204,4 +213,5 @@ jobs:
           gh release create $VERSION \
             --draft \
             --title $VERSION \
-            --notes-file $RELEASE_NOTE
+            --notes-file $RELEASE_NOTE \
+            ./build/distributions/*.zip

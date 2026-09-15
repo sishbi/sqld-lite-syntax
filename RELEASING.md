@@ -8,13 +8,25 @@ Two workflows do the work. Nothing publishes without a manual step.
 
 1. `.github/workflows/build.yml` runs on every push to `main`. After `buildPlugin`, `check` and
    `verifyPlugin` pass, the `releaseDraft` job deletes any existing draft release and creates a new
-   **draft** release. The tag is the `version` property from `gradle.properties`. The release notes
-   are the `## [Unreleased]` section of `CHANGELOG.md`.
+   **draft** release, with the plugin ZIP attached. The tag is the `version` property from
+   `gradle.properties`. The release notes are the `## [Unreleased]` section of `CHANGELOG.md`.
 2. `.github/workflows/release.yml` runs when you **publish** that draft. It patches the changelog,
-   runs `signPlugin` and `publishPlugin`, uploads the ZIP as a release asset, raises the patch
-   version, and opens a pull request carrying both the patched `CHANGELOG.md` and the new version.
+   runs `signPlugin` and `publishPlugin`, raises the patch version, and opens a pull request
+   carrying both the patched `CHANGELOG.md` and the new version.
 
 So: merge to `main`, then publish the draft. The draft is the gate.
+
+### Release immutability
+
+The repository has **Enable release immutability** switched on, so the assets and the tag of a
+published release cannot be changed. Two consequences:
+
+- The ZIP is attached to the **draft**, in step 1. Nothing may add an asset after publication. Do
+  not move that upload into `release.yml`, which runs after the release is already published.
+- A published release cannot be corrected. Check the draft's tag, notes and attached ZIP before you
+  publish it. To fix a mistake, release the next patch version.
+
+Deleting drafts is unaffected, because a draft is not a published release.
 
 ## One-time setup
 
@@ -112,7 +124,8 @@ A bug fix needs no edit. The automatic patch bump already covers it.
 
 5. Merge to `main`. Wait for the `Build` workflow to finish.
 6. Open <https://github.com/sishbi/sqld-lite-syntax/releases>. Read the draft the workflow created.
-   Check the tag and the notes.
+   Check the tag, the notes and the attached ZIP. This is the last chance: immutability makes a
+   published release permanent. Install the ZIP in a real IDE if the release is significant.
 7. Publish the draft. This triggers `release.yml`.
 8. Check the `Release` workflow passed, then check the version appears on the plugin's Marketplace
    page. A new version is reviewed automatically and appears within minutes, not days.
@@ -121,11 +134,14 @@ A bug fix needs no edit. The automatic patch bump already covers it.
 
 ## If the release workflow fails
 
-The draft is already published, so the tag exists. Fix the cause, then either re-run the failed job
-from the Actions page, or publish the plugin by hand:
+The draft is already published, so the tag exists and cannot be moved. Fix the cause, then either
+re-run the failed job from the Actions page, or publish the plugin by hand:
 
 ```bash
 ./gradlew signPlugin publishPlugin
 ```
 
 Both tasks need the four secrets in the local environment. Never commit them.
+
+Re-running is safe: no step in `release.yml` touches the release or the tag. If the fix needs a code
+change, it cannot go out under this tag. Merge it and release the next patch version.

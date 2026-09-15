@@ -65,11 +65,9 @@ jobs:
           PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
         run: ./gradlew publishPlugin
 
-      # Upload an artifact as a release asset
-      - name: Upload Release Asset
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ github.event.release.tag_name }} ./build/distributions/*
+      # The ZIP is attached to the draft by the Build workflow, not uploaded here. Release
+      # immutability forbids changing the assets of a published release, and this workflow runs
+      # after publication.
 
       # Raise the patch so gradle.properties already holds the next release version. Semantic
       # versioning needs a person to decide a minor or a major bump, so only the patch is automatic.
