@@ -11,8 +11,8 @@ Two workflows do the work. Nothing publishes without a manual step.
    **draft** release. The tag is the `version` property from `gradle.properties`. The release notes
    are the `## [Unreleased]` section of `CHANGELOG.md`.
 2. `.github/workflows/release.yml` runs when you **publish** that draft. It patches the changelog,
-   runs `signPlugin` and `publishPlugin`, uploads the ZIP as a release asset, and opens a pull
-   request with the patched `CHANGELOG.md`.
+   runs `signPlugin` and `publishPlugin`, uploads the ZIP as a release asset, raises the patch
+   version, and opens a pull request carrying both the patched `CHANGELOG.md` and the new version.
 
 So: merge to `main`, then publish the draft. The draft is the gate.
 
@@ -74,19 +74,35 @@ publishing {
 }
 ```
 
-### 5. Set a real version
+## Versioning
 
-`gradle.properties` says `version=0.0.1-SNAPSHOT`. A draft release tagged `0.0.1-SNAPSHOT` is not
-releasable. Set a plain semantic version before the first release.
+`version` in `gradle.properties` is always the version of the **next** release, as a plain
+`MAJOR.MINOR.PATCH`. Never add a `-SNAPSHOT` or any other suffix: the draft release is tagged with
+this string verbatim, and a suffix publishes to a Marketplace channel of that name instead of the
+default one. Both workflows refuse a version that is not three plain numbers.
+
+After each release the `Bump Patch Version` step raises the patch and puts it in the follow-up pull
+request, so the next version is ready with no action from you.
+
+Semantic versioning needs a person to judge a minor or a major bump, so those are manual. Before you
+merge to `main`, edit `version` in `gradle.properties` yourself when the work is:
+
+- a new feature or a new IDE build in the supported range, which is a **minor** bump;
+- a breaking change, such as raising `sinceBuild` and dropping support for an older IDE, which is a
+  **major** bump.
+
+A bug fix needs no edit. The automatic patch bump already covers it.
 
 ## Each release
 
-1. Update `version` in `gradle.properties`. Use semantic versioning. Do not use `-SNAPSHOT`.
+1. Decide the version. A bug fix needs nothing; a feature or a break needs a hand edit to
+   `gradle.properties`, as above.
 2. Move the finished entries in `CHANGELOG.md` from `## [Unreleased]` into shape for the release.
    The `releaseDraft` job reads only the `[Unreleased]` section, so anything left below it is not in
    the release notes.
 3. Check that `sinceBuild` and `untilBuild` in `gradle/libs.versions.toml` still describe the range
-   you verified. `untilBuild` caps the IDE builds the plugin claims to support.
+   you verified. `untilBuild` caps the IDE builds the plugin claims to support. Raising `sinceBuild`
+   is a breaking change and needs a major bump.
 4. Run the gates locally:
 
    ```bash
@@ -100,8 +116,8 @@ releasable. Set a plain semantic version before the first release.
 7. Publish the draft. This triggers `release.yml`.
 8. Check the `Release` workflow passed, then check the version appears on the plugin's Marketplace
    page. A new version is reviewed automatically and appears within minutes, not days.
-9. Merge the `Changelog update - <version>` pull request the workflow opened.
-10. Set `version` in `gradle.properties` to the next development version.
+9. Merge the `Release follow-up - <version>` pull request the workflow opened. It holds the patched
+   changelog and the bumped patch version, so `main` is ready for the next release.
 
 ## If the release workflow fails
 

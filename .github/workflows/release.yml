@@ -71,30 +71,46 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload ${{ github.event.release.tag_name }} ./build/distributions/*
 
-      # Create a pull request
+      # Raise the patch so gradle.properties already holds the next release version. Semantic
+      # versioning needs a person to decide a minor or a major bump, so only the patch is automatic.
+      - name: Bump Patch Version
+        run: |
+          CURRENT=$(./gradlew properties --property version --quiet --console=plain | tail -n 1 | cut -f2- -d ' ')
+
+          if [[ ! "$CURRENT" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            echo "version is '$CURRENT': cannot bump a version that is not MAJOR.MINOR.PATCH" >&2
+            exit 1
+          fi
+
+          NEXT="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.$((BASH_REMATCH[3] + 1))"
+          echo "Bumping $CURRENT to $NEXT"
+
+          # Anchored and line-scoped, so a "version" elsewhere in the file is untouched.
+          sed -i "s/^version=.*/version=$NEXT/" gradle.properties
+
+      # Create a pull request carrying the patched changelog and the bumped version
       - name: Create Pull Request
-        if: ${{ github.event.release.body != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ github.event.release.tag_name }}"
-          BRANCH="changelog-update-$VERSION"
+          BRANCH="release-followup-$VERSION"
           LABEL="release changelog"
 
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
 
           git checkout -b $BRANCH
-          git commit -am "Changelog update - $VERSION"
+          git commit -am "Release follow-up - $VERSION"
           git push --set-upstream origin $BRANCH
 
           gh label create "$LABEL" \
-            --description "Pull requests with release changelog update" \
+            --description "Pull requests with the post-release changelog and version update" \
             --force \
             || true
 
           gh pr create \
-            --title "Changelog update - \`$VERSION\`" \
-            --body "Current pull request contains patched \`CHANGELOG.md\` file for the \`$VERSION\` version." \
+            --title "Release follow-up - \`$VERSION\`" \
+            --body "Patched \`CHANGELOG.md\` for the \`$VERSION\` release, and raised the patch version in \`gradle.properties\` ready for the next one." \
             --label "$LABEL" \
             --head $BRANCH
