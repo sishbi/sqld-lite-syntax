@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
  */
 class SqldLiteReverseNavigationTest : SqldLitePlatformTestCase() {
 
-    override fun getTestDataPath() = "src/test/testData"
+    override fun getTestDataPath() = "src/test/resources"
 
     fun testFindsTheKotlinCallForALabel() {
         myFixture.addFileToProject(

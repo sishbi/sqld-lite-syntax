@@ -9,7 +9,7 @@ import java.lang.reflect.Modifier
 /** Checks that the settings page offers every colour the plugin can apply. */
 class SqldLiteColorSettingsPageTest : ParsingTestCase("", "sq", SqldLiteParserDefinition()) {
 
-    override fun getTestDataPath() = "src/test/testData"
+    override fun getTestDataPath() = "src/test/resources"
 
     private val page by lazy { SqldLiteColorSettingsPage() }
 

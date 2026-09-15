@@ -1,4 +1,5 @@
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.extensions.intellijPlatform
 
@@ -9,6 +10,27 @@ plugins {
 
     // Composes SqldLite.bnf against the sql-psi grammar. Generates a parser only, never a lexer.
     id("app.cash.grammarkit-composer")
+}
+
+// The IDE builds this plugin targets all run on JetBrains Runtime 21, so 21 is the bytecode
+// ceiling, not a preference. A newer target throws UnsupportedClassVersionError as the IDE loads
+// the plugin. Pinning the vendor as well stops the build silently using whatever JDK happens to
+// run the Gradle daemon, which was Temurin locally and Zulu in CI.
+kotlin {
+    jvmToolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+        vendor = JvmVendorSpec.ADOPTIUM
+    }
+
+    // The platform supplies kotlin-stdlib at run time, so the plugin must not compile against a
+    // newer Kotlin than the target IDE bundles. 2025.2 bundles Kotlin 2.2 and its Kotlin plugin
+    // reads metadata up to 2.2.0; the Kotlin compiler here is 2.4.20 and defaults to emitting 2.4.
+    // Left alone, the classes load but anything reading their metadata reports "unsupported binary
+    // format", and stdlib calls added after 2.2 fail with NoSuchMethodError on the floor build.
+    compilerOptions {
+        apiVersion = KotlinVersion.KOTLIN_2_2
+        languageVersion = KotlinVersion.KOTLIN_2_2
+    }
 }
 
 // The GrammarKit plugin, applied transitively by grammarkit-composer, declares project-level
@@ -40,11 +62,26 @@ tasks.withType<org.jetbrains.grammarkit.tasks.GenerateParserTask>().configureEac
 
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
 dependencies {
-    testImplementation(libs.junit)
+    testImplementation(platform(libs.junit.bom))
 
-    // SQL grammar, lexer and PSI. Compiled against platform 231, while this plugin targets 262.
+    // junit.framework.TestCase, which every IntelliJ test fixture extends.
+    testImplementation(libs.junit)
+    // Runs those JUnit 3 fixtures on the JUnit 5 platform.
+    testRuntimeOnly(libs.junit.vintage.engine)
+    testRuntimeOnly(libs.junit.platform.launcher)
+    // For new tests that do not need an IntelliJ fixture.
+    testImplementation(libs.junit.jupiter)
+
+    // SQL grammar, lexer and PSI. Compiled against platform 231, while this plugin targets 252.
     // verifyPlugin is what proves that difference has not broken binary compatibility.
-    implementation(libs.sql.psi)
+    //
+    // The platform already puts kotlin-stdlib and the JetBrains annotations on the plugin
+    // classloader's parent. sql-psi drags in its own copies, and shipping a second kotlin-stdlib
+    // is forbidden -> https://jb.gg/intellij-platform-kotlin-stdlib
+    implementation(libs.sql.psi) {
+        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+        exclude(group = "org.jetbrains", module = "annotations")
+    }
 
     // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {
@@ -57,11 +94,34 @@ dependencies {
     }
 }
 
+tasks.test {
+    useJUnitPlatform()
+}
+
 intellijPlatform {
+    pluginConfiguration {
+        ideaVersion {
+            // Stated rather than inherited from the compile target. Without it the plugin claims
+            // compatibility with 262 only, because the Gradle plugin derives since-build from
+            // whatever intellijIdea() resolves to.
+            sinceBuild = libs.versions.intellijIdeaSinceBuild
+
+            // Capped at the newest build verifyPlugin actually checks. Left open, the plugin would
+            // claim compatibility with IDE builds that did not exist when it was verified, and
+            // this plugin reaches into sql-psi and Kotlin plugin internals that do move.
+            untilBuild = libs.versions.intellijIdeaUntilBuild
+        }
+    }
+
     pluginVerification {
         ides {
-            // The IDE builds the user actually runs. A clean run is mandatory before release.
-            create(IntelliJPlatformType.IntellijIdeaUltimate, libs.versions.intellijIdea)
+            // Every release build from the declared floor upwards. Verifying only the compile
+            // target proves nothing about the older builds since-build promises to support.
+            select {
+                types = listOf(IntelliJPlatformType.IntellijIdeaUltimate)
+                sinceBuild = libs.versions.intellijIdeaSinceBuild
+                untilBuild = libs.versions.intellijIdeaUntilBuild
+            }
         }
     }
 }

@@ -37,7 +37,7 @@ import org.jetbrains.kotlin.psi.KtValueArgument
  */
 class SqldLiteQueryUsageTest : SqldLitePlatformTestCase() {
 
-    override fun getTestDataPath() = "src/test/testData"
+    override fun getTestDataPath() = "src/test/resources"
 
     fun testGreysOutOnlyTheQueriesNoKotlinCalls() {
         myFixture.addFileToProject(
