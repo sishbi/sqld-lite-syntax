@@ -14,7 +14,7 @@ import com.intellij.testFramework.ParsingTestCase
  */
 class SqldLiteSemanticHighlightsTest : ParsingTestCase("", "sq", SqldLiteParserDefinition()) {
 
-    override fun getTestDataPath() = "src/test/testData"
+    override fun getTestDataPath() = "src/test/resources"
 
     override fun skipSpaces() = false
 

@@ -48,5 +48,5 @@ class SqldLiteHighlightingIntegrationTest : SqldLitePlatformTestCase() {
         )
     }
 
-    override fun getTestDataPath() = "src/test/testData"
+    override fun getTestDataPath() = "src/test/resources"
 }

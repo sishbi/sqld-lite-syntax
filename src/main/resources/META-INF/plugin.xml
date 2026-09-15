@@ -8,12 +8,12 @@
     <name>SqlD-Lite Syntax</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor url="https://github.com/sishbi">sishbi</vendor>
+    <vendor url="https://github.com/sishbi/sqld-lite-syntax">sishbi</vendor>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-description -->
     <description><![CDATA[
-        Type formatting and code navigation for SqlDelight .sq and .sqm files.
+        Syntax highlighting and code navigation for SqlDelight .sq and .sqm files.
         ]]></description>
 
     <!-- Product and plugin compatibility requirements.
@@ -43,6 +43,7 @@
                                  implementationClass="sishbi.sqldlite.SqldLiteFindUsagesProvider"/>
         <findUsagesHandlerFactory implementation="sishbi.sqldlite.SqldLiteFindUsagesHandlerFactory"/>
         <customUsageSearcher implementation="sishbi.sqldlite.SqldLiteGeneratedQueryUsageSearcher"/>
+        <customUsageSearcher implementation="sishbi.sqldlite.SqldLiteSqlFileUsageSearcher"/>
         <usageTypeProvider implementation="sishbi.sqldlite.SqldLiteUsageTypeProvider"/>
         <lang.sliceProvider language="SqldLite" implementationClass="sishbi.sqldlite.SqldLiteSliceProvider"/>
         <callHierarchyProvider language="SqldLite"

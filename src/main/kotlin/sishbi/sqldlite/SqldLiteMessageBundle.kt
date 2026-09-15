@@ -11,9 +11,7 @@ internal object SqldLiteMessageBundle {
 
     @JvmStatic
     fun message(
-        key:
-            @PropertyKey(resourceBundle = BUNDLE)
-            String,
+        @PropertyKey(resourceBundle = BUNDLE) key: String,
         vararg params: Any?,
     ): String = instance.getMessage(key, *params)
 

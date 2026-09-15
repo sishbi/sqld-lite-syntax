@@ -15,7 +15,7 @@ import java.lang.reflect.Modifier
  */
 class SqldLiteSyntaxHighlighterTest : ParsingTestCase("", "sq", SqldLiteParserDefinition()) {
 
-    override fun getTestDataPath() = "src/test/testData"
+    override fun getTestDataPath() = "src/test/resources"
 
     private val highlighter by lazy { SqldLiteSyntaxHighlighter() }
 

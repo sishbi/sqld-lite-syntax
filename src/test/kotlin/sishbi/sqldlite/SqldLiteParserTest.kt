@@ -22,7 +22,7 @@ import com.intellij.testFramework.ParsingTestCase
  */
 class SqldLiteParserTest : ParsingTestCase("", "sq", SqldLiteParserDefinition()) {
 
-    override fun getTestDataPath() = "src/test/testData"
+    override fun getTestDataPath() = "src/test/resources"
 
     override fun skipSpaces() = false
 

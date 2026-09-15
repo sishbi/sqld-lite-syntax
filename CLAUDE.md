@@ -18,7 +18,7 @@ IntelliJ plugin, which crashes the IDE.
 | `src/main/kotlin/sishbi/sqldlite/SqldLite.bnf` | The overlay grammar, composed against the sql-psi grammar. |
 | `src/main/resources/META-INF/plugin.xml` | Extension registrations. |
 | `src/main/resources/messages/SqldLiteMessageBundle.properties` | Every user-visible string. |
-| `src/test/testData/` | `.sq` and `.sqm` fixtures. |
+| `src/test/resources/` | `.sq` and `.sqm` fixtures. |
 | `.ai-local-plans/` | Plans and drafts. Git-ignored. |
 
 ## Adding a grammar rule

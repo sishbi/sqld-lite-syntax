@@ -10,7 +10,7 @@ import com.intellij.psi.search.GlobalSearchScope
  */
 class SqldLiteNavigationTest : SqldLitePlatformTestCase() {
 
-    override fun getTestDataPath() = "src/test/testData"
+    override fun getTestDataPath() = "src/test/resources"
 
     fun testIndexesEveryLabelInAFile() {
         myFixture.copyFileToProject("BookLoans.sq")

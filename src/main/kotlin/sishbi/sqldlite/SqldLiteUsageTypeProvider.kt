@@ -18,6 +18,7 @@ private val TYPE_IMPORT = UsageType { SqldLiteMessageBundle.message("usages.grou
 private val COLUMN_TYPE = UsageType { SqldLiteMessageBundle.message("usages.group.column.type") }
 private val SCHEMA = UsageType { SqldLiteMessageBundle.message("usages.group.schema") }
 private val STATEMENT = UsageType { SqldLiteMessageBundle.message("usages.group.statement") }
+private val SQL_FILE = UsageType { SqldLiteMessageBundle.message("usages.group.sql.file") }
 
 /**
  * Names the group a usage of a query appears under in the Find Usages panel, on both sides: the
@@ -31,10 +32,18 @@ private val STATEMENT = UsageType { SqldLiteMessageBundle.message("usages.group.
 class SqldLiteUsageTypeProvider : UsageTypeProvider {
 
     override fun getUsageType(element: PsiElement): UsageType? =
-        when (element.containingFile) {
-            is SqldLiteFile -> sqUsageType(element)
+        when {
+            element.containingFile is SqldLiteFile -> sqUsageType(element)
+            isSqlFile(element) -> SQL_FILE
             else -> generatedCallUsageType(element)
         }
+
+    /** A `.sql` file reported by [SqldLiteSqlFileUsageSearcher], which the platform cannot group. */
+    private fun isSqlFile(element: PsiElement) =
+        element.containingFile
+            ?.virtualFile
+            ?.extension
+            .equals(SQL_FILE_EXTENSION, ignoreCase = true)
 
     private fun sqUsageType(element: PsiElement): UsageType? =
         when {
