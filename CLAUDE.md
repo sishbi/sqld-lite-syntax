@@ -78,6 +78,10 @@ the attribute rules and the traps, all of which fail silently.
   `collectSlowLineMarkers`.
 - The plugin registers a file type, a parser definition and stub element type holders, so it cannot
   be hot-reloaded. Restart the sandbox IDE after a change.
+- Every icon needs a `_dark` variant beside it. The platform finds it by the `_dark` suffix and
+  never derives one from the light file, so a missing variant shows nothing in a dark theme. This
+  has bitten twice: `sqldLiteFile_dark.svg` for the file type, and `META-INF/pluginIcon_dark.svg`
+  for the tile in Settings | Plugins, which showed the generic placeholder without it.
 - The icon on a Find Usages target line comes from `NavigationItem.getPresentation()` on the target
   element, never from `getIcon(flags)` and never through the `itemPresentationProvider` extension
   point. `PsiElement2UsageTargetAdapter` reads the presentation directly, so the extension point is
