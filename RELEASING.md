@@ -45,12 +45,19 @@ Go to <https://plugins.jetbrains.com/plugin/add>, upload the ZIP, and wait for m
 reviews a new plugin by hand, which takes a few working days. Every later version publishes through
 the API.
 
-### 2. Create a Marketplace permanent token
+### 2. Add the screenshots
+
+Screenshots are Marketplace metadata, not part of the plugin. Nothing in `plugin.xml`, the ZIP or
+`publishPlugin` carries them, and an `<img>` tag in the plugin description is stripped. Upload them
+on the plugin page, under Edit Plugin, once moderation has accepted the first version. They are
+plugin-level, so every later release keeps them. The files are in `docs/images/`.
+
+### 3. Create a Marketplace permanent token
 
 In <https://plugins.jetbrains.com/author/me/tokens>, create a token with the **Marketplace** scope.
 Save it as the repository secret `PUBLISH_TOKEN`.
 
-### 3. Create a signing certificate
+### 4. Create a signing certificate
 
 The Marketplace requires a signed plugin. Follow
 <https://plugins.jetbrains.com/docs/intellij/plugin-signing.html> to generate a private key and a
@@ -62,7 +69,7 @@ self-signed certificate chain, then save three repository secrets:
 | `PRIVATE_KEY_PASSWORD` | The password for that key. |
 | `CERTIFICATE_CHAIN` | The certificate chain, PEM. |
 
-### 4. Wire the secrets into the build
+### 5. Wire the secrets into the build
 
 `build.gradle.kts` does not yet read them. `release.yml` puts all four in the environment, but
 without this block `publishPlugin` fails with no token specified. Add to the `intellijPlatform`

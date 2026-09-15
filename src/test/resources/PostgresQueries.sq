@@ -1,8 +1,8 @@
 -- Written for this plugin's tests. Every query here holds a construct the overlay grammar has to
 -- parse and core SQL rejects. SqldLitePostgresDialectTest lists them.
 
-import com.example.library.EditionId;
-import com.example.library.Price;
+import sishbi.sqldlite.fixtures.EditionId;
+import sishbi.sqldlite.fixtures.Price;
 
 CREATE TABLE catalogue_entries (
     id UUID NOT NULL PRIMARY KEY,

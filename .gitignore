@@ -4,3 +4,4 @@
 build
 .kotlin
 .ai-local-plans
+.DS_Store
