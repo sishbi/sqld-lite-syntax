@@ -1,8 +1,7 @@
 # sqld-lite-syntax
 
-An IntelliJ IDEA plugin for SqlDelight `.sq` and `.sqm` files. It replaces the
-[SqlDelight IntelliJ plugin](https://github.com/sqldelight/sqldelight/tree/main/sqldelight-idea-plugin),
-which crashes the IDE.
+An IntelliJ IDEA plugin for SqlDelight `.sq` and `.sqm` files. It is a lightweight replacement for the
+[SqlDelight IntelliJ plugin](https://github.com/sqldelight/sqldelight/tree/main/sqldelight-idea-plugin).
 
 It does two things: syntax highlighting, and code navigation. Navigation runs between a `.sq` file
 and Kotlin in both directions, and between the `.sq` and `.sqm` files that declare and use a table.
