@@ -1,12 +1,12 @@
 # sqld-lite-syntax
 
-An IntelliJ IDEA plugin for SqlDelight `.sq` and `.sqm` files. It replaces the official SqlDelight
-IntelliJ plugin, which crashes the IDE.
+An IntelliJ IDEA plugin for SqlDelight `.sq` and `.sqm` files. It is a lightweight replacement for
+the official SqlDelight IntelliJ plugin.
 
 ## Hard constraints
 
-- **The plugin must never crash or freeze the IDE.** That is the whole reason it exists. A library
-  or dependency problem that brings the IDE down is a failure, however small the feature.
+- **The plugin must never crash or freeze the IDE.** Stability is why this plugin exists, so a
+  library or dependency problem that brings the IDE down is a failure, however small the feature.
 - `verifyPlugin` must report `Compatible` before any release.
 - The plugin generates no code. The SqlDelight Gradle plugin still does that.
 
