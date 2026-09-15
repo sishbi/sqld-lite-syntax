@@ -1,0 +1,18 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- The dark variant of the plugin tile. The platform resolves this by the `_dark` suffix and does
+       not derive it from the light file, so without it the Plugins list shows a placeholder.
+       Same geometry and gradient as pluginIcon.svg, with each stop lifted so the stroke keeps its
+       contrast against a dark background. -->
+  <defs>
+    <linearGradient id="g" x1="6" y1="4" x2="34" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5FF184"/>
+      <stop offset="0.52" stop-color="#5FB4DE"/>
+      <stop offset="1" stop-color="#9385FF"/>
+    </linearGradient>
+  </defs>
+  <g stroke="url(#g)" stroke-width="3" fill="none" stroke-linecap="round">
+    <ellipse cx="20" cy="9" rx="13" ry="5"/>
+    <path d="M7 9v22c0 2.76 5.82 5 13 5s13-2.24 13-5V9"/>
+    <path d="M7 20c0 2.76 5.82 5 13 5s13-2.24 13-5"/>
+  </g>
+</svg>
