@@ -1,4 +1,4 @@
-rootProject.name = "sqd-code"
+rootProject.name = "sqld-lite-syntax"
 
 pluginManagement {
     plugins {

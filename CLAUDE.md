@@ -1,4 +1,4 @@
-# sqd-code
+# sqld-lite-syntax
 
 An IntelliJ IDEA plugin for SqlDelight `.sq` and `.sqm` files. It replaces the official SqlDelight
 IntelliJ plugin, which crashes the IDE.
@@ -14,18 +14,18 @@ IntelliJ plugin, which crashes the IDE.
 
 | Path | Holds |
 |---|---|
-| `src/main/kotlin/sishbi/sqd/` | Every class. One flat package, `SqdCode` prefix on each name. |
-| `src/main/kotlin/sishbi/sqd/SqdCode.bnf` | The overlay grammar, composed against the sql-psi grammar. |
+| `src/main/kotlin/sishbi/sqldlite/` | Every class. One flat package, `SqldLite` prefix on each name. |
+| `src/main/kotlin/sishbi/sqldlite/SqldLite.bnf` | The overlay grammar, composed against the sql-psi grammar. |
 | `src/main/resources/META-INF/plugin.xml` | Extension registrations. |
-| `src/main/resources/messages/SqdCodeMessageBundle.properties` | Every user-visible string. |
+| `src/main/resources/messages/SqldLiteMessageBundle.properties` | Every user-visible string. |
 | `src/test/testData/` | `.sq` and `.sqm` fixtures. |
 | `.ai-local-plans/` | Plans and drafts. Git-ignored. |
 
 ## Adding a grammar rule
 
 A `.sq` or `.sqm` file using a construct the overlay does not cover is painted red. Add the rule to
-`SqdCode.bnf` and a case to `SqdCodePostgresDialectTest`. `PostgreSql.bnf` in the SqlDelight
-repository is the reference for the rule's shape. Read the header of `SqdCode.bnf` first: it holds
+`SqldLite.bnf` and a case to `SqldLitePostgresDialectTest`. `PostgreSql.bnf` in the SqlDelight
+repository is the reference for the rule's shape. Read the header of `SqldLite.bnf` first: it holds
 the attribute rules and the traps, all of which fail silently.
 
 ## Conventions
@@ -34,7 +34,7 @@ the attribute rules and the traps, all of which fail silently.
 - Names in test fixtures are generic. No employer, product or customer names.
 - Comments say why, not what. A comment that restates the code is noise.
 - Parser tests extend `ParsingTestCase`; anything needing the platform extends
-  `SqdCodePlatformTestCase`.
+  `SqldLitePlatformTestCase`.
 - Prefer extending an existing test over adding a new one.
 
 ## Things that have already bitten
@@ -71,8 +71,8 @@ the attribute rules and the traps, all of which fail silently.
   `SchemaContributor.name()`.
 - A migration chain is a linked list, not a set. The name in an `ALTER TABLE` resolves to the
   statement below it, and a query resolves only to the newest one, so a search from any single link
-  reports one neighbour. `SqdCodeSchemaChain` collects the whole chain, and
-  `SqdCodeTargetElementEvaluator` keeps a declaration as its own target: without it, a search from
+  reports one neighbour. `SqldLiteSchemaChain` collects the whole chain, and
+  `SqldLiteTargetElementEvaluator` keeps a declaration as its own target: without it, a search from
   the newest migration titles the panel with the one before it.
 - A line marker must hang off a leaf element, and an index-reading marker belongs in
   `collectSlowLineMarkers`.
