@@ -4,7 +4,7 @@
 
 ## [Unreleased]
 
-The initial version. It replaces the official SqlDelight IntelliJ plugin, which crashes the IDE, and
+The initial version. It is a lightweight replacement for the official SqlDelight IntelliJ plugin, and
 covers syntax highlighting and code navigation. It generates no code.
 
 ### Added
@@ -48,6 +48,9 @@ covers syntax highlighting and code navigation. It generates no code.
 - A table or view name in a query as a reference to the `CREATE` that declares it, so Go To
   Declaration reaches the table's origin rather than the newest migration.
 - Find Usages on a column name and on a table alias.
+- Occurrences of a table, view or column name in `.sql` files included in its usages, grouped under
+  "SQL file". The match is on the name alone, because a `.sql` file belongs to the IDE's own SQL
+  support and shares no PSI with `.sq`.
 
 #### Find Usages, hierarchies and inspections
 
