@@ -7,7 +7,7 @@ plugins {
     id("org.jetbrains.changelog")
     id("org.jetbrains.intellij.platform")
 
-    // Composes SqdCode.bnf against the sql-psi grammar. Generates a parser only, never a lexer.
+    // Composes SqldLite.bnf against the sql-psi grammar. Generates a parser only, never a lexer.
     id("app.cash.grammarkit-composer")
 }
 

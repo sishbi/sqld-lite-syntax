@@ -1,8 +1,7 @@
-# sqd-code
+# sqld-lite-syntax
 
-An IntelliJ IDEA plugin for SqlDelight `.sq` and `.sqm` files. It replaces the
-[SqlDelight IntelliJ plugin](https://github.com/sqldelight/sqldelight/tree/main/sqldelight-idea-plugin),
-which crashes the IDE.
+An IntelliJ IDEA plugin for SqlDelight `.sq` and `.sqm` files. It is a lightweight replacement for the
+[SqlDelight IntelliJ plugin](https://github.com/sqldelight/sqldelight/tree/main/sqldelight-idea-plugin).
 
 It does two things: syntax highlighting, and code navigation. Navigation runs between a `.sq` file
 and Kotlin in both directions, and between the `.sq` and `.sqm` files that declare and use a table.
@@ -39,7 +38,7 @@ its column.
 ## The grammar
 
 `app.cash.sql-psi:core` supplies the SQL lexer, parser and PSI, and covers core SQL only. An overlay
-grammar, `SqdCode.bnf`, adds what SqlDelight and PostgreSQL add on top. It is not a full PostgreSQL
+grammar, `SqldLite.bnf`, adds what SqlDelight and PostgreSQL add on top. It is not a full PostgreSQL
 dialect: it covers the constructs a survey of real `.sq` and `.sqm` files found to be needed, and
 every file in that survey parses with no error.
 

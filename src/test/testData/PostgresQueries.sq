@@ -1,5 +1,5 @@
 -- Written for this plugin's tests. Every query here holds a construct the overlay grammar has to
--- parse and core SQL rejects. SqdCodePostgresDialectTest lists them.
+-- parse and core SQL rejects. SqldLitePostgresDialectTest lists them.
 
 import com.example.library.EditionId;
 import com.example.library.Price;

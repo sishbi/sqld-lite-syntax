@@ -1,6 +1,6 @@
 <!-- Keep a Changelog guide -> https://keepachangelog.com -->
 
-# Sqd-code Changelog
+# SqlD-Lite Syntax Changelog
 
 ## [Unreleased]
 

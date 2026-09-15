@@ -1,11 +1,11 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
-    <id>sishbi.sqd-code</id>
+    <id>sishbi.sqld-lite-syntax</id>
 
     <!-- Public plugin name should be written in Title Case.
      Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-name -->
-    <name>SQD-Code - SqlDelight Code Formatting</name>
+    <name>SqlD-Lite Syntax</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor url="https://github.com/sishbi">sishbi</vendor>
@@ -21,52 +21,52 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>org.jetbrains.kotlin</depends>
 
-    <resource-bundle>messages.SqdCodeMessageBundle</resource-bundle>
+    <resource-bundle>messages.SqldLiteMessageBundle</resource-bundle>
 
     <!-- Extensions defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <fileType name="SqdCode" language="SqdCode" extensions="sq;sqm"
-                  implementationClass="sishbi.sqd.SqdCodeFileType" fieldName="INSTANCE"/>
-        <lang.parserDefinition language="SqdCode"
-                               implementationClass="sishbi.sqd.SqdCodeParserDefinition"/>
-        <lang.syntaxHighlighterFactory language="SqdCode"
-                                       implementationClass="sishbi.sqd.SqdCodeSyntaxHighlighterFactory"/>
-        <annotator language="SqdCode" implementationClass="sishbi.sqd.SqdCodeHighlightAnnotator"/>
-        <colorSettingsPage implementation="sishbi.sqd.SqdCodeColorSettingsPage"/>
-        <fileBasedIndex implementation="sishbi.sqd.SqdCodeLabelIndex"/>
-        <gotoDeclarationHandler implementation="sishbi.sqd.SqdCodeGotoDeclarationHandler"/>
-        <gotoDeclarationHandler implementation="sishbi.sqd.SqdCodeSqGotoDeclarationHandler"/>
-        <targetElementEvaluator language="SqdCode"
-                                implementationClass="sishbi.sqd.SqdCodeTargetElementEvaluator"/>
-        <lang.findUsagesProvider language="SqdCode"
-                                 implementationClass="sishbi.sqd.SqdCodeFindUsagesProvider"/>
-        <findUsagesHandlerFactory implementation="sishbi.sqd.SqdCodeFindUsagesHandlerFactory"/>
-        <customUsageSearcher implementation="sishbi.sqd.SqdCodeGeneratedQueryUsageSearcher"/>
-        <usageTypeProvider implementation="sishbi.sqd.SqdCodeUsageTypeProvider"/>
-        <lang.sliceProvider language="SqdCode" implementationClass="sishbi.sqd.SqdCodeSliceProvider"/>
-        <callHierarchyProvider language="SqdCode"
-                               implementationClass="sishbi.sqd.SqdCodeCallHierarchyProvider"/>
-        <codeInsight.lineMarkerProvider language="SqdCode"
-                                        implementationClass="sishbi.sqd.SqdCodeCallerLineMarkerProvider"/>
-        <localInspection language="SqdCode" shortName="SqdCodeUnusedQuery"
-                         bundle="messages.SqdCodeMessageBundle"
+        <fileType name="SqldLite" language="SqldLite" extensions="sq;sqm"
+                  implementationClass="sishbi.sqldlite.SqldLiteFileType" fieldName="INSTANCE"/>
+        <lang.parserDefinition language="SqldLite"
+                               implementationClass="sishbi.sqldlite.SqldLiteParserDefinition"/>
+        <lang.syntaxHighlighterFactory language="SqldLite"
+                                       implementationClass="sishbi.sqldlite.SqldLiteSyntaxHighlighterFactory"/>
+        <annotator language="SqldLite" implementationClass="sishbi.sqldlite.SqldLiteHighlightAnnotator"/>
+        <colorSettingsPage implementation="sishbi.sqldlite.SqldLiteColorSettingsPage"/>
+        <fileBasedIndex implementation="sishbi.sqldlite.SqldLiteLabelIndex"/>
+        <gotoDeclarationHandler implementation="sishbi.sqldlite.SqldLiteGotoDeclarationHandler"/>
+        <gotoDeclarationHandler implementation="sishbi.sqldlite.SqldLiteSqGotoDeclarationHandler"/>
+        <targetElementEvaluator language="SqldLite"
+                                implementationClass="sishbi.sqldlite.SqldLiteTargetElementEvaluator"/>
+        <lang.findUsagesProvider language="SqldLite"
+                                 implementationClass="sishbi.sqldlite.SqldLiteFindUsagesProvider"/>
+        <findUsagesHandlerFactory implementation="sishbi.sqldlite.SqldLiteFindUsagesHandlerFactory"/>
+        <customUsageSearcher implementation="sishbi.sqldlite.SqldLiteGeneratedQueryUsageSearcher"/>
+        <usageTypeProvider implementation="sishbi.sqldlite.SqldLiteUsageTypeProvider"/>
+        <lang.sliceProvider language="SqldLite" implementationClass="sishbi.sqldlite.SqldLiteSliceProvider"/>
+        <callHierarchyProvider language="SqldLite"
+                               implementationClass="sishbi.sqldlite.SqldLiteCallHierarchyProvider"/>
+        <codeInsight.lineMarkerProvider language="SqldLite"
+                                        implementationClass="sishbi.sqldlite.SqldLiteCallerLineMarkerProvider"/>
+        <localInspection language="SqldLite" shortName="SqldLiteUnusedQuery"
+                         bundle="messages.SqldLiteMessageBundle"
                          key="inspection.unused.query.name"
                          groupKey="inspection.group.name"
                          enabledByDefault="true" level="WARNING"
-                         implementationClass="sishbi.sqd.SqdCodeUnusedQueryInspection"/>
+                         implementationClass="sishbi.sqldlite.SqldLiteUnusedQueryInspection"/>
         <stubIndex implementation="com.alecstrong.sql.psi.core.psi.SchemaContributorIndexImpl"/>
         <!-- DevKit reads any attribute named "class" as an implementation class and asks for a
              StubElementTypeHolderEP. This extension point binds "class" as a plain String naming
              the element type holder, so both registrations below are correct as written. -->
         <!--suppress PluginXmlValidity -->
         <stubElementTypeHolder class="com.alecstrong.sql.psi.core.psi.SqlTypes"
-                               externalIdPrefix="SqdCode.TYPES"/>
+                               externalIdPrefix="SqldLite.TYPES"/>
         <!-- The overlay grammar replaces create_index_stmt, which is stub-backed. Without this the
              stub index cannot resolve the element type and every index in the project is lost. -->
         <!--suppress PluginXmlValidity -->
-        <stubElementTypeHolder class="sishbi.sqd.psi.SqdCodeTypes"
-                               externalIdPrefix="SqdCode.OVERLAY"/>
+        <stubElementTypeHolder class="sishbi.sqldlite.psi.SqldLiteTypes"
+                               externalIdPrefix="SqldLite.OVERLAY"/>
     </extensions>
     <!-- DevKit marks this extension point for removal, saying K2 is now the default. The Plugin
          Verifier still fails a plugin that depends on the Kotlin plugin and omits it, and the
