@@ -123,6 +123,11 @@ https://jb.gg/intellij-platform-kotlin-stdlib
 - The Database plugin is loaded in the platform test fixture, because `bundledPlugin` puts it on the
   test classpath. A `.sql` file in a test therefore has real SQL PSI, which is what makes the
   precise searcher testable.
+- A `.sql` file with no data source attached is parsed as generic SQL, which rejects much of real
+  PostgreSQL. `CREATE INDEX CONCURRENTLY x ON t (c)` is one: the names after the error land in a
+  recovery block, while the statement itself is still classed as an index definition, so filtering
+  by kind alone dropped two visible usages. `SqldLiteSqlFileReferenceUsageSearcher` asks whether the
+  statement holds a `PsiErrorElement` before it classifies, and keeps every name inside one.
 - The icon inside that presentation comes from `ElementBase.getIcon`, which asks the `iconProvider`
   extension point and otherwise falls back to the icon of the containing file.
   `SqldLiteIconProvider` is what puts a database icon on a table, view or column name.

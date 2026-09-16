@@ -214,53 +214,62 @@ class SqldLiteReverseNavigationTest : SqldLitePlatformTestCase() {
      * support what the name is being used as, which drops a mention in a comment and one inside a
      * string literal. The name-only searcher behind it keeps both, because in an IDE without the
      * Database plugin there is nothing to ask.
+     *
+     * `3.sql` holds every case, and is there to be opened in the sandbox IDE as
+     * well: Find Usages on `book_loans` or `status` in `PlainSql.sq` should report exactly what
+     * this test asserts.
      */
     fun testReportsOnlyTheRealSqlReferencesInASqlFile() {
-        val schema = myFixture.addFileToProject(
-            "Reservations.sq",
-            "CREATE TABLE reservations (\n  journey TEXT NOT NULL\n);\n",
-        )
-        myFixture.addFileToProject(
-            "Audit.sql",
-            """
-            -- reservations gains a note column here
-            ALTER TABLE reservations ADD COLUMN note TEXT;
-            INSERT INTO audit (message) VALUES ('reservations changed');
-            """.trimIndent(),
-        )
+        val schema = myFixture.configureFromTempProjectFile(schemaWithSqlMigration())
         val table = requireNotNull(PsiTreeUtil.findChildOfType(schema, SqlTableName::class.java))
 
-        // The word index offers all three: the comment, the string literal and the statement.
-        assertSize(3, searchSqlFiles(table) { true })
+        // A comment and a string literal name the table as well as the two statements do.
+        assertSize(4, searchSqlFiles(table) { true })
 
         val references = sqlFileReferencesOf(table)
-        assertSize(1, references)
+        assertSize(2, references)
 
-        // The one that survives is the name in the ALTER TABLE, not the two before and after it.
-        val sql = requireNotNull(references.single().element).containingFile.text
+        // The survivors are the CREATE INDEX and the UPDATE, in that order. The index carries
+        // PostgreSQL's CONCURRENTLY, which the IDE's generic SQL dialect cannot parse, so that hit
+        // is kept for a different reason: SQL has no opinion on a statement it could not read.
+        val sql = requireNotNull(references.first().element).containingFile.text
         assertEquals(
-            sql.indexOf("reservations", sql.indexOf("ALTER TABLE")),
-            references.single().navigationOffset,
+            listOf(
+                sql.indexOf("book_loans (status)"),
+                sql.indexOf("UPDATE book_loans") + "UPDATE ".length,
+            ),
+            references.map { it.navigationOffset },
         )
     }
 
-    /** As above for a column, which the Database plugin classifies apart from a table. */
-    fun testReportsAColumnReferenceInASqlFile() {
-        val schema = myFixture.addFileToProject(
-            "Reservations.sq",
-            "CREATE TABLE reservations (\n  journey TEXT NOT NULL\n);\n",
-        )
-        myFixture.addFileToProject(
-            "Audit.sql",
-            """
-            -- journey is read below
-            SELECT journey FROM reservations;
-            """.trimIndent(),
-        )
+    /**
+     * As above for a column. The Database plugin classifies a column apart from a table, so a
+     * search for one never reports the other.
+     */
+    fun testReportsOnlyTheRealSqlColumnReferencesInASqlFile() {
+        val schema = myFixture.configureFromTempProjectFile(schemaWithSqlMigration())
         val column = requireNotNull(PsiTreeUtil.findChildOfType(schema, SqlColumnName::class.java))
 
-        assertSize(2, searchSqlFiles(column) { true })
-        assertSize(1, sqlFileReferencesOf(column))
+        assertEquals("loan_id", column.name)
+
+        val status = requireNotNull(
+            PsiTreeUtil.findChildrenOfType(schema, SqlColumnName::class.java)
+                .firstOrNull { it.name == "status" },
+        )
+
+        // A comment, a string literal, and the three places SQL reads the column.
+        assertSize(5, searchSqlFiles(status) { true })
+        assertSize(3, sqlFileReferencesOf(status))
+
+        // A column the migration never names has no `.sql` usages at all.
+        assertEmpty(sqlFileReferencesOf(column))
+    }
+
+    /** The `.sq` schema and the hand-written `.sql` migration beside it, both from test data. */
+    private fun schemaWithSqlMigration(): String {
+        myFixture.copyFileToProject("3.sql")
+        myFixture.copyFileToProject("PlainSql.sq")
+        return "PlainSql.sq"
     }
 
     /** What [SqldLiteSqlFileReferenceUsageSearcher] reports for [element]. */
@@ -271,7 +280,10 @@ class SqldLiteReverseNavigationTest : SqldLitePlatformTestCase() {
             usages,
             FindUsagesOptions(project),
         )
-        return usages.results.filterIsInstance<UsageInfo2UsageAdapter>().map { it.usageInfo }
+        return usages.results
+            .filterIsInstance<UsageInfo2UsageAdapter>()
+            .map { it.usageInfo }
+            .sortedBy { it.navigationOffset }
     }
 
     /** What the Find Usages panel shows for [element], across every element the handler searches. */

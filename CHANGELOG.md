@@ -9,7 +9,9 @@
 - Occurrences of a table, view or column name in a `.sql` file are reported only where SQL reads
   them as a table or a column, so a mention in a comment and one inside a string literal no longer
   count as usages. This needs the IDE's own SQL support, which is bundled with IntelliJ IDEA
-  Ultimate and DataGrip. In an IDE without it the match stays on the name alone.
+  Ultimate and DataGrip. In an IDE without it the match stays on the name alone. A statement the
+  IDE could not parse keeps every occurrence in it, because a `.sql` file with no data source is
+  read as generic SQL, which rejects a good deal of real PostgreSQL.
 
 ### Fixed
 

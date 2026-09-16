@@ -5,10 +5,14 @@ import com.alecstrong.sql.psi.core.psi.SqlColumnName
 import com.intellij.database.model.ObjectKind
 import com.intellij.find.findUsages.CustomUsageSearcher
 import com.intellij.find.findUsages.FindUsagesOptions
+import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiErrorElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.sql.psi.SqlDefinition
 import com.intellij.sql.psi.SqlReferenceExpression
+import com.intellij.sql.psi.SqlStringLiteralExpression
 import com.intellij.usages.Usage
 import com.intellij.util.Processor
 
@@ -53,12 +57,42 @@ class SqldLiteSqlFileReferenceUsageSearcher : CustomUsageSearcher() {
      * Whether SQL reads the candidate as one of [kinds], either as a reference to such an object or
      * as the statement that declares one. The nearest enclosing reference is the one that counts:
      * in `schema.table` the qualifier is a reference of its own, of kind `SCHEMA`.
+     *
+     * A comment and a string literal are never usages, whatever else is true of the statement
+     * around them. A statement SQL could not parse is the opposite case: its classification cannot
+     * be trusted, so the hit is kept rather than lost, which is why [inUnparsedStatement] is asked
+     * first.
      */
     private fun isReferenceOfKind(candidate: PsiElement, kinds: Set<ObjectKind>): Boolean {
+        if (isCommentOrLiteral(candidate)) return false
+        if (inUnparsedStatement(candidate)) return true
+
         val reference = PsiTreeUtil.getParentOfType(candidate, SqlReferenceExpression::class.java, false)
         if (reference != null) return reference.referenceElementType?.targetKind in kinds
 
         val definition = PsiTreeUtil.getParentOfType(candidate, SqlDefinition::class.java, false)
         return definition != null && definition.kind in kinds
+    }
+
+    private fun isCommentOrLiteral(candidate: PsiElement) =
+        PsiTreeUtil.getParentOfType(candidate, PsiComment::class.java, false) != null ||
+            PsiTreeUtil.getParentOfType(candidate, SqlStringLiteralExpression::class.java, false) != null
+
+    /**
+     * Whether the statement holding the candidate failed to parse.
+     *
+     * The dialect the IDE gives a `.sql` file is the generic one until a data source says otherwise,
+     * and generic SQL rejects a good deal of real PostgreSQL. `CREATE INDEX CONCURRENTLY ... ON
+     * table (column)` is one: the names after the error land in a recovery block inside a statement
+     * SQL does class, as an index, so classifying alone drops both names a reader can see. The cost
+     * is that any identifier inside a statement that failed to parse counts, which is what the
+     * name-only searcher does everywhere.
+     */
+    private fun inUnparsedStatement(candidate: PsiElement): Boolean {
+        val statement = generateSequence(candidate) { it.parent }
+            .firstOrNull { it.parent is PsiFile }
+            ?: return false
+
+        return PsiTreeUtil.findChildOfType(statement, PsiErrorElement::class.java) != null
     }
 }
