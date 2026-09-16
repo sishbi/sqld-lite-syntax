@@ -111,9 +111,11 @@ intellijPlatform {
         }
     }
 
-    // The Marketplace accepts only a signed plugin. `release.yml` puts these four in the
-    // environment; without these two blocks the build never reads them, `signPlugin` is SKIPPED
-    // and `publishPlugin` fails with "'token' property must be specified for plugin publishing".
+    // `release.yml` puts these four in the environment; without these two blocks the build never
+    // reads them, `signPlugin` is SKIPPED and `publishPlugin` fails with "'token' property must be
+    // specified for plugin publishing". Only the token is mandatory: the Marketplace signs every
+    // plugin with its own certificate, and an author signature is a second one on top, whose
+    // absence costs a warning dialog in the IDE at install time.
     // Generating the key and the chain: https://plugins.jetbrains.com/docs/intellij/plugin-signing.html
     signing {
         certificateChain = providers.environmentVariable("CERTIFICATE_CHAIN")
