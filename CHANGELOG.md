@@ -4,6 +4,23 @@
 
 ## Unreleased
 
+The same plugin as 0.1.1. This release carries no change to the code; it exists to restate what
+0.1.1 brought without the build detail that belonged to contributors rather than to users.
+
+### Added
+
+- A database icon beside a table, view or column name, so a Find Usages target line, a Go To Symbol
+  row and a structure view row can be told apart. Every name showed the icon of its file before.
+
+### Fixed
+
+- Two `.sq` files that both alter the same table no longer freeze the IDE. Each statement resolved to
+  the other and the recursion ended in a `StackOverflowError`.
+- Find Usages on a table, view or column reports the whole migration chain from the index, rather
+  than walking one reference at a time from the statement the caret is on.
+- The name and the icon on a Find Usages target line, which the platform reads from the element's
+  presentation.
+
 ## 0.1.1 - 2026-09-16
 
 ### Added
