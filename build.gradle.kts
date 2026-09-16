@@ -111,6 +111,31 @@ intellijPlatform {
         }
     }
 
+    // `release.yml` puts these four in the environment; without these two blocks the build never
+    // reads them, `signPlugin` is SKIPPED and `publishPlugin` fails with "'token' property must be
+    // specified for plugin publishing". Only the token is mandatory: the Marketplace signs every
+    // plugin with its own certificate, and an author signature is a second one on top, whose
+    // absence costs a warning dialog in the IDE at install time.
+    // Generating the key and the chain: https://plugins.jetbrains.com/docs/intellij/plugin-signing.html
+    signing {
+        certificateChain = providers.environmentVariable("CERTIFICATE_CHAIN")
+        privateKey = providers.environmentVariable("PRIVATE_KEY")
+        password = providers.environmentVariable("PRIVATE_KEY_PASSWORD")
+    }
+
+    publishing {
+        token = providers.environmentVariable("PUBLISH_TOKEN")
+
+        // A version holding a dash publishes to a Marketplace channel of that name, so 1.0.0-beta.1
+        // goes to "beta". A plain MAJOR.MINOR.PATCH publishes to the default channel, which is what
+        // both workflows enforce.
+        channels = listOf(
+            providers.gradleProperty("version").map {
+                it.substringAfter('-', "").substringBefore('.').ifEmpty { "default" }
+            }.get(),
+        )
+    }
+
     pluginVerification {
         ides {
             // Every release build from the declared floor upwards. Verifying only the compile
