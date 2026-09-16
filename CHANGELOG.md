@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+## 0.1.2 - 2026-09-16
+
 The same plugin as 0.1.1. This release carries no change to the code; it exists to restate what
 0.1.1 brought without the build detail that belonged to contributors rather than to users.
 
