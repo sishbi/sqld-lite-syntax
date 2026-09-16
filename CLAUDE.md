@@ -123,6 +123,13 @@ https://jb.gg/intellij-platform-kotlin-stdlib
 - The Database plugin is loaded in the platform test fixture, because `bundledPlugin` puts it on the
   test classpath. A `.sql` file in a test therefore has real SQL PSI, which is what makes the
   precise searcher testable.
+- Find Usages of a table or column that reports a `.sql` occurrence can log "Read access is allowed
+  from inside read-action only" from the EDT. The missing read action is the Database plugin's:
+  `SqlStructureGroupRuleProvider.StatementUsageGroup.compareTo` resolves a smart pointer while the
+  usage view sorts its group nodes. It needs two matched statements in one file, it is a soft
+  assert, and the panel still completes. Filed as
+  https://youtrack.jetbrains.com/issue/DBE-27138. Nothing to fix here: our searcher holds a read
+  action for the whole search and appears in no frame of the stack.
 - `runIde` starts with its own sandbox configuration directory, so it inherits neither the licence
   nor the enabled plugins of the IDE you develop in. Database Tools is disabled there until the
   Ultimate subscription is activated inside the sandbox, and until it is, the `.sql` search takes
