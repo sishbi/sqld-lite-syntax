@@ -71,27 +71,16 @@ self-signed certificate chain, then save three repository secrets:
 
 ### 5. Wire the secrets into the build
 
-`build.gradle.kts` does not yet read them. `release.yml` puts all four in the environment, but
-without this block `publishPlugin` fails with no token specified. Add to the `intellijPlatform`
-block:
+Done. The `signing` and `publishing` blocks in `build.gradle.kts` read all four environment
+variables `release.yml` sets. Nothing to do here; the note remains so the reason is on record.
 
-```kotlin
-signing {
-    certificateChain = providers.environmentVariable("CERTIFICATE_CHAIN")
-    privateKey = providers.environmentVariable("PRIVATE_KEY")
-    password = providers.environmentVariable("PRIVATE_KEY_PASSWORD")
-}
+Without those blocks the build ignored the secrets entirely: `signPlugin` was `SKIPPED` and
+`publishPlugin` failed with `'token' property must be specified for plugin publishing`, which is
+what the 0.1.0 release run hit.
 
-publishing {
-    token = providers.environmentVariable("PUBLISH_TOKEN")
-
-    // A version with a dash publishes to a channel of that name, so 1.0.0-beta.1 goes to "beta".
-    // A stable version publishes to the default channel.
-    channels = listOf(providers.gradleProperty("version").map {
-        it.substringAfter('-', "").substringBefore('.').ifEmpty { "default" }
-    }.get())
-}
-```
+`signPlugin` is skipped whenever no certificate is configured, so a local build never signs. To
+check the wiring rather than the key, run it with any non-empty values: the task then runs and fails
+on the key itself instead of being skipped.
 
 ## Versioning
 
