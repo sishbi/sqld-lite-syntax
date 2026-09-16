@@ -215,9 +215,9 @@ class SqldLiteReverseNavigationTest : SqldLitePlatformTestCase() {
      * string literal. The name-only searcher behind it keeps both, because in an IDE without the
      * Database plugin there is nothing to ask.
      *
-     * `3.sql` holds every case, and is there to be opened in the sandbox IDE as
-     * well: Find Usages on `book_loans` or `status` in `PlainSql.sq` should report exactly what
-     * this test asserts.
+     * `V3__index_book_loans_status.sql` holds every case, and is there to be opened in the sandbox
+     * IDE as well: Find Usages on `book_loans` or `status` in `PlainSql.sq` should report exactly
+     * what this test asserts.
      */
     fun testReportsOnlyTheRealSqlReferencesInASqlFile() {
         val schema = myFixture.configureFromTempProjectFile(schemaWithSqlMigration())
@@ -267,7 +267,7 @@ class SqldLiteReverseNavigationTest : SqldLitePlatformTestCase() {
 
     /** The `.sq` schema and the hand-written `.sql` migration beside it, both from test data. */
     private fun schemaWithSqlMigration(): String {
-        myFixture.copyFileToProject("3.sql")
+        myFixture.copyFileToProject("V3__index_book_loans_status.sql")
         myFixture.copyFileToProject("PlainSql.sq")
         return "PlainSql.sq"
     }
