@@ -2,6 +2,7 @@ package sishbi.sqldlite
 
 import com.alecstrong.sql.psi.core.psi.SqlColumnName
 import com.alecstrong.sql.psi.core.psi.SqlTableName
+import com.intellij.find.findUsages.FindUsagesOptions
 import com.intellij.icons.AllIcons
 import com.intellij.navigation.NavigationItem
 import com.intellij.psi.PsiElement
@@ -10,6 +11,8 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.usageView.UsageInfo
+import com.intellij.usages.Usage
+import com.intellij.usages.UsageInfo2UsageAdapter
 import com.intellij.util.CommonProcessors
 import com.intellij.util.PsiIconUtil
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -203,6 +206,72 @@ class SqldLiteReverseNavigationTest : SqldLitePlatformTestCase() {
         val presentation = requireNotNull((table as NavigationItem).presentation)
         assertEquals("reservations", presentation.presentableText)
         assertEquals("Reservations.sq", presentation.locationString)
+    }
+
+    /**
+     * A `.sql` file is the IDE's own SQL support, not this plugin's, so a name in one is reached by
+     * the word index and nothing else. [SqldLiteSqlFileReferenceUsageSearcher] then asks that SQL
+     * support what the name is being used as, which drops a mention in a comment and one inside a
+     * string literal. The name-only searcher behind it keeps both, because in an IDE without the
+     * Database plugin there is nothing to ask.
+     */
+    fun testReportsOnlyTheRealSqlReferencesInASqlFile() {
+        val schema = myFixture.addFileToProject(
+            "Reservations.sq",
+            "CREATE TABLE reservations (\n  journey TEXT NOT NULL\n);\n",
+        )
+        myFixture.addFileToProject(
+            "Audit.sql",
+            """
+            -- reservations gains a note column here
+            ALTER TABLE reservations ADD COLUMN note TEXT;
+            INSERT INTO audit (message) VALUES ('reservations changed');
+            """.trimIndent(),
+        )
+        val table = requireNotNull(PsiTreeUtil.findChildOfType(schema, SqlTableName::class.java))
+
+        // The word index offers all three: the comment, the string literal and the statement.
+        assertSize(3, searchSqlFiles(table) { true })
+
+        val references = sqlFileReferencesOf(table)
+        assertSize(1, references)
+
+        // The one that survives is the name in the ALTER TABLE, not the two before and after it.
+        val sql = requireNotNull(references.single().element).containingFile.text
+        assertEquals(
+            sql.indexOf("reservations", sql.indexOf("ALTER TABLE")),
+            references.single().navigationOffset,
+        )
+    }
+
+    /** As above for a column, which the Database plugin classifies apart from a table. */
+    fun testReportsAColumnReferenceInASqlFile() {
+        val schema = myFixture.addFileToProject(
+            "Reservations.sq",
+            "CREATE TABLE reservations (\n  journey TEXT NOT NULL\n);\n",
+        )
+        myFixture.addFileToProject(
+            "Audit.sql",
+            """
+            -- journey is read below
+            SELECT journey FROM reservations;
+            """.trimIndent(),
+        )
+        val column = requireNotNull(PsiTreeUtil.findChildOfType(schema, SqlColumnName::class.java))
+
+        assertSize(2, searchSqlFiles(column) { true })
+        assertSize(1, sqlFileReferencesOf(column))
+    }
+
+    /** What [SqldLiteSqlFileReferenceUsageSearcher] reports for [element]. */
+    private fun sqlFileReferencesOf(element: PsiElement): List<UsageInfo> {
+        val usages = CommonProcessors.CollectProcessor<Usage>()
+        SqldLiteSqlFileReferenceUsageSearcher().processElementUsages(
+            element,
+            usages,
+            FindUsagesOptions(project),
+        )
+        return usages.results.filterIsInstance<UsageInfo2UsageAdapter>().map { it.usageInfo }
     }
 
     /** What the Find Usages panel shows for [element], across every element the handler searches. */

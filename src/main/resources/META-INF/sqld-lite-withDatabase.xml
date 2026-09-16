@@ -1,0 +1,8 @@
+<!-- Loaded only where the Database plugin is, through the optional <depends> in plugin.xml. Every
+     class named here may reach into the IDE's own SQL support; nothing in the main descriptor may.
+     -->
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <customUsageSearcher implementation="sishbi.sqldlite.SqldLiteSqlFileReferenceUsageSearcher"/>
+    </extensions>
+</idea-plugin>

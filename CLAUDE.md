@@ -17,6 +17,7 @@ the official SqlDelight IntelliJ plugin.
 | `src/main/kotlin/sishbi/sqldlite/` | Every class. One flat package, `SqldLite` prefix on each name. |
 | `src/main/kotlin/sishbi/sqldlite/SqldLite.bnf` | The overlay grammar, composed against the sql-psi grammar. |
 | `src/main/resources/META-INF/plugin.xml` | Extension registrations. |
+| `src/main/resources/META-INF/sqld-lite-withDatabase.xml` | Registrations that need the IDE's own SQL support. Loaded only where the Database plugin is. |
 | `src/main/resources/messages/SqldLiteMessageBundle.properties` | Every user-visible string. |
 | `src/test/resources/` | `.sq` and `.sqm` fixtures. A `.sqm` fixture is named for its number, as a real migration is. |
 | `src/test/kotlin/sishbi/sqldlite/fixtures/` | Kotlin that stands in for the generated queries class, so navigation can be tried by hand. |
@@ -110,6 +111,18 @@ https://jb.gg/intellij-platform-kotlin-stdlib
   never consulted. `PsiElementBase.getPresentation()` returns null, which is why a sql-psi name
   element showed no icon. `SqlNamedElementImpl` now overrides `getPresentation()`, which is the only
   place it can go.
+- `PsiSearchHelper.processElementsWithWord` calls the processor once for the token holding the word
+  and once for every element above it, up to the file. Five rows in the Find Usages panel for one
+  occurrence in a `.sql` file came from taking each of them. `searchSqlFiles` keeps the first
+  candidate at a position, which is the innermost.
+- The Database plugin's SQL PSI may be named only from classes registered in
+  `sqld-lite-withDatabase.xml`, which `plugin.xml` loads through an optional `<depends>`. A
+  reference to one of those classes from the main descriptor's code fails to load in any IDE without
+  the plugin, and Community is one. `referenceSearcherRegistered` therefore asks the extension point
+  by class name, never by class.
+- The Database plugin is loaded in the platform test fixture, because `bundledPlugin` puts it on the
+  test classpath. A `.sql` file in a test therefore has real SQL PSI, which is what makes the
+  precise searcher testable.
 - The icon inside that presentation comes from `ElementBase.getIcon`, which asks the `iconProvider`
   extension point and otherwise falls back to the icon of the containing file.
   `SqldLiteIconProvider` is what puts a database icon on a table, view or column name.

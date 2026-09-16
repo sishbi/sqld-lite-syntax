@@ -4,6 +4,20 @@
 
 ## Unreleased
 
+### Added
+
+- Occurrences of a table, view or column name in a `.sql` file are reported only where SQL reads
+  them as a table or a column, so a mention in a comment and one inside a string literal no longer
+  count as usages. This needs the IDE's own SQL support, which is bundled with IntelliJ IDEA
+  Ultimate and DataGrip. In an IDE without it the match stays on the name alone.
+
+### Fixed
+
+- A name in a `.sql` file is reported once. The word index offers an occurrence once for the token
+  and once for each element around it, and every one of them became a row in the Find Usages panel.
+
+## 0.1.2 - 2026-09-16
+
 The same plugin as 0.1.1. This release carries no change to the code; it exists to restate what
 0.1.1 brought without the build detail that belonged to contributors rather than to users.
 

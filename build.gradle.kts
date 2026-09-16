@@ -89,6 +89,11 @@ dependencies {
 
         // Add plugin dependencies for compilation here:
         bundledPlugin("org.jetbrains.kotlin")
+
+        // The IDE's own SQL support, for classifying a name in a `.sql` file. Bundled in the
+        // unified distribution, but licensed to Ultimate and DataGrip only, so `plugin.xml`
+        // declares it optional and the name-only searcher stays for every other IDE.
+        bundledPlugin("com.intellij.database")
     }
 }
 

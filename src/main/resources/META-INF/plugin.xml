@@ -21,6 +21,11 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>org.jetbrains.kotlin</depends>
 
+    <!-- The IDE's own SQL support, which can say whether a name in a `.sql` file is read as a table
+         or a column. Optional: it is licensed to Ultimate and DataGrip, and the plugin must work
+         without it. Nothing outside the descriptor below may touch a Database plugin class. -->
+    <depends optional="true" config-file="sqld-lite-withDatabase.xml">com.intellij.database</depends>
+
     <resource-bundle>messages.SqldLiteMessageBundle</resource-bundle>
 
     <!-- Extensions defined by the plugin.
