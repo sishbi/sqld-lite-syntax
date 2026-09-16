@@ -123,6 +123,10 @@ https://jb.gg/intellij-platform-kotlin-stdlib
 - The Database plugin is loaded in the platform test fixture, because `bundledPlugin` puts it on the
   test classpath. A `.sql` file in a test therefore has real SQL PSI, which is what makes the
   precise searcher testable.
+- `runIde` starts with its own sandbox configuration directory, so it inherits neither the licence
+  nor the enabled plugins of the IDE you develop in. Database Tools is disabled there until the
+  Ultimate subscription is activated inside the sandbox, and until it is, the `.sql` search takes
+  the name-only fallback. A comment or a string literal in the usages list is the symptom.
 - A `.sql` file with no data source attached is parsed as generic SQL, which rejects much of real
   PostgreSQL. `CREATE INDEX CONCURRENTLY x ON t (c)` is one: the names after the error land in a
   recovery block, while the statement itself is still classed as an index definition, so filtering
