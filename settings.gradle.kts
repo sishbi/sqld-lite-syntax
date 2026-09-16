@@ -1,5 +1,8 @@
 rootProject.name = "sqld-lite-syntax"
 
+// The SQL grammar, lexer and PSI. Source, not an artefact: see sql-psi/README.md.
+include(":sql-psi")
+
 pluginManagement {
     plugins {
         id("org.jetbrains.kotlin.jvm") version "2.4.20"

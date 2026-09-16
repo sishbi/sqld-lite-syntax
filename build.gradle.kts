@@ -37,9 +37,6 @@ kotlin {
 // repositories. That makes Gradle ignore the settings-level ones entirely, so they are repeated
 // here. Without this the IntelliJ Platform artefacts stop resolving.
 repositories {
-    // The sql-psi fork at ~/IdeaProjects/sql-psi is read from here, not from a remote. Build it
-    // with `./gradlew publishToMavenLocal` in that repo after any change to it.
-    mavenLocal()
     mavenCentral()
 
     intellijPlatform {
@@ -75,15 +72,14 @@ dependencies {
     // For new tests that do not need an IntelliJ fixture.
     testImplementation(libs.junit.jupiter)
 
-    // SQL grammar, lexer and PSI, from the local fork. Compiled against platform 233, while this
-    // plugin targets 252. verifyPlugin is what proves that difference has not broken binary
-    // compatibility.
+    // SQL grammar, lexer and PSI. Source in this repo rather than an artefact, so the build needs
+    // no local publish, no remote repository and no credential, and it compiles against the same
+    // platform as the rest of the plugin. Provenance and the route back upstream: sql-psi/README.md.
     //
-    // No excludes. The fork declares kotlin-stdlib as compileOnly, so it appears in neither the
-    // POM nor the Gradle module metadata, and the JetBrains annotations came in only as a
-    // transitive of stdlib. The platform supplies both on the plugin classloader's parent, and
-    // shipping a second kotlin-stdlib is forbidden -> https://jb.gg/intellij-platform-kotlin-stdlib
-    implementation(libs.sql.psi)
+    // kotlin-stdlib is absent by design: the platform supplies it on the plugin classloader's
+    // parent, and shipping a second copy is forbidden
+    // -> https://jb.gg/intellij-platform-kotlin-stdlib
+    implementation(project(":sql-psi"))
 
     // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {

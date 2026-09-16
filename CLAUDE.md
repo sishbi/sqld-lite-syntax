@@ -20,6 +20,7 @@ the official SqlDelight IntelliJ plugin.
 | `src/main/resources/messages/SqldLiteMessageBundle.properties` | Every user-visible string. |
 | `src/test/resources/` | `.sq` and `.sqm` fixtures. A `.sqm` fixture is named for its number, as a real migration is. |
 | `src/test/kotlin/sishbi/sqldlite/fixtures/` | Kotlin that stands in for the generated queries class, so navigation can be tried by hand. |
+| `sql-psi/` | The SQL grammar, lexer and PSI, as source. Upstream's code, upstream's package names. |
 | `.ai-local-plans/` | Plans and drafts. Git-ignored. |
 
 ## Adding a grammar rule
@@ -38,17 +39,20 @@ the attribute rules and the traps, all of which fail silently.
   `SqldLitePlatformTestCase`.
 - Prefer extending an existing test over adding a new one.
 
-## The sql-psi dependency
+## The `:sql-psi` subproject
 
-`sishbi.sql-psi:core` is a fork, at https://github.com/sishbi/sql-psi, tag `0.9.0`. It is published
-to no remote repository. Clone that repo and run `./gradlew publishToMavenLocal`; this build reads
-it from `mavenLocal()`. A version alone is not a pin for a local artefact, so
-`gradle/verification-metadata.xml` holds its checksum, and a copy built from anything other than the
-tag fails the build. That file names the refresh command.
+The SQL grammar, lexer and PSI are source in this repository, under `sql-psi/`, taken from the fork
+at https://github.com/sishbi/sql-psi. They are not a dependency: there is no local publish, no
+remote repository and no credential, and they compile against the same platform as the plugin.
+`sql-psi/README.md` holds the provenance and the route back to upstream. Read it before changing
+anything under `sql-psi/src`.
 
-The fork declares `kotlin-stdlib` as `compileOnly`, so the dependency needs no excludes. The
-platform supplies the stdlib and the JetBrains annotations, and a second copy of either on the
-plugin classloader is forbidden: https://jb.gg/intellij-platform-kotlin-stdlib
+The package names are upstream's, `com.alecstrong.sql.psi.*`, because `SqldLite.bnf` and
+`plugin.xml` name them.
+
+`kotlin-stdlib` is absent from the whole build on purpose. The platform supplies it on the plugin
+classloader's parent, and shipping a second copy is forbidden:
+https://jb.gg/intellij-platform-kotlin-stdlib
 
 ## Things that have already bitten
 
@@ -78,12 +82,12 @@ plugin classloader is forbidden: https://jb.gg/intellij-platform-kotlin-stdlib
   migration numbered wrongly resolves some names, while one numbered not at all resolves none.
 - sql-psi resolves a table, view or column across files through `SchemaContributorIndex`, a stub
   index. The file node type must build stubs or the file contributes nothing to it, and every name
-  resolves only inside its own file. Nothing reported this: the resolution just returned null. The
-  fork narrows `SqlParserDefinition.getFileNodeType` to `StubFileElementType<*>`, so it is now a
+  resolves only inside its own file. Nothing reported this: the resolution just returned null.
+  `SqlParserDefinition.getFileNodeType` is now narrowed to `StubFileElementType<*>`, so it is a
   compile error.
 - `SchemaContributorIndex.byKey` is keyed by the kind of statement, such as
   `com.alecstrong.sql.psi.core.psi.TableElement`. Use `byName` to ask by the name a statement
-  declares; the fork added it, because the upstream index answered only the first question. The
+  declares; `byName` is a local addition, because upstream answered only the first question. The
   method is `byKey` and not `get` because `get` erased to the deprecated `AbstractStubIndex.get`,
   and the Plugin Verifier reported that against this plugin.
 - A migration chain is a linked list, not a set. The name in an `ALTER TABLE` resolves to the
@@ -104,8 +108,11 @@ plugin classloader is forbidden: https://jb.gg/intellij-platform-kotlin-stdlib
   element, never from `getIcon(flags)` and never through the `itemPresentationProvider` extension
   point. `PsiElement2UsageTargetAdapter` reads the presentation directly, so the extension point is
   never consulted. `PsiElementBase.getPresentation()` returns null, which is why a sql-psi name
-  element showed no icon. The fork overrides `getPresentation()` on `SqlNamedElementImpl`, which is
-  the only place it can go.
+  element showed no icon. `SqlNamedElementImpl` now overrides `getPresentation()`, which is the only
+  place it can go.
+- The icon inside that presentation comes from `ElementBase.getIcon`, which asks the `iconProvider`
+  extension point and otherwise falls back to the icon of the containing file.
+  `SqldLiteIconProvider` is what puts a database icon on a table, view or column name.
 
 ## Commands
 

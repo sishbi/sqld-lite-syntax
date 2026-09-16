@@ -20,9 +20,10 @@
 
 ### Changed
 
-- SQL parsing, lexing and PSI now come from a fork of `sql-psi`, at
-  <https://github.com/sishbi/sql-psi>, which carries the fixes above. The plugin no longer excludes
-  the Kotlin standard library from it, and pins its checksum.
+- SQL parsing, lexing and PSI are now source in this repository, under `sql-psi/`, taken from a
+  fork of `sql-psi` at <https://github.com/sishbi/sql-psi> that carries the fixes above. They were
+  a published artefact before. The build needs no repository, no credential and no local publish,
+  and the SQL PSI compiles against the same IDE build as the rest of the plugin.
 
 ## [0.1.0] - 2026-09-15
 
