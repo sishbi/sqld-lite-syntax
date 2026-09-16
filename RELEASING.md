@@ -116,7 +116,8 @@ A bug fix needs no edit. The automatic patch bump already covers it.
    `gradle.properties`, as above.
 2. Move the finished entries in `CHANGELOG.md` from `## [Unreleased]` into shape for the release.
    The `releaseDraft` job reads only the `[Unreleased]` section, so anything left below it is not in
-   the release notes.
+   the release notes. Use `###` headings and list items only: `patchChangelog` re-serialises the
+   whole file and silently drops anything deeper, which once deleted 41 lines of the 0.1.0 section.
 3. Check that `sinceBuild` and `untilBuild` in `gradle/libs.versions.toml` still describe the range
    you verified. `untilBuild` caps the IDE builds the plugin claims to support. Raising `sinceBuild`
    is a breaking change and needs a major bump.

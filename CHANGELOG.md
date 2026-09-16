@@ -2,7 +2,26 @@
 
 # SqlD-Lite Syntax Changelog
 
-## [Unreleased]
+## Unreleased
+
+The same plugin as 0.1.1. This release carries no change to the code; it exists to restate what
+0.1.1 brought without the build detail that belonged to contributors rather than to users.
+
+### Added
+
+- A database icon beside a table, view or column name, so a Find Usages target line, a Go To Symbol
+  row and a structure view row can be told apart. Every name showed the icon of its file before.
+
+### Fixed
+
+- Two `.sq` files that both alter the same table no longer freeze the IDE. Each statement resolved to
+  the other and the recursion ended in a `StackOverflowError`.
+- Find Usages on a table, view or column reports the whole migration chain from the index, rather
+  than walking one reference at a time from the statement the caret is on.
+- The name and the icon on a Find Usages target line, which the platform reads from the element's
+  presentation.
+
+## 0.1.1 - 2026-09-16
 
 ### Added
 
@@ -25,14 +44,12 @@
   a published artefact before. The build needs no repository, no credential and no local publish,
   and the SQL PSI compiles against the same IDE build as the rest of the plugin.
 
-## [0.1.0] - 2026-09-15
+## 0.1.0 - 2026-09-15
 
 The initial version. It is a lightweight replacement for the official SqlDelight IntelliJ plugin, and
 covers syntax highlighting and code navigation. It generates no code.
 
 ### Added
-
-#### Files and syntax
 
 - A file type, language, icon and parser for `.sq` and `.sqm`.
 - Highlighting for keywords, identifiers, literals, comments, punctuation and operators, and for the
@@ -47,9 +64,6 @@ covers syntax highlighting and code navigation. It generates no code.
   `SET LOCAL`, SqlDelight grouped statements, `DEFAULT now()`, a bare `NULL` column constraint,
   `DOUBLE PRECISION`, array types, `GENERATED ALWAYS AS IDENTITY`, `ADD COLUMN IF NOT EXISTS`,
   every PostgreSQL `ALTER COLUMN` action and `CREATE INDEX ... USING btree`.
-
-#### Navigation between `.sq` and Kotlin
-
 - Go To Declaration from a Kotlin query call to its `.sq` query label, and from the name of a named
   argument to the bind argument it fills.
 - Go To Declaration from a `.sq` query label to the Kotlin calls to that query, from a bind argument
@@ -62,9 +76,6 @@ covers syntax highlighting and code navigation. It generates no code.
   parameter after its column.
 - Navigation triggered only by a call whose receiver name ends in `Queries`, so unrelated Kotlin is
   untouched.
-
-#### Navigation inside `.sq` and `.sqm`
-
 - Find Usages on a table or view name, reporting its whole history: the `CREATE`, every `ALTER`
   after it, and every statement that uses it. The same list comes back from any of those starting
   points.
@@ -74,9 +85,6 @@ covers syntax highlighting and code navigation. It generates no code.
 - Occurrences of a table, view or column name in `.sql` files included in its usages, grouped under
   "SQL file". The match is on the name alone, because a `.sql` file belongs to the IDE's own SQL
   support and shares no PSI with `.sq`.
-
-#### Find Usages, hierarchies and inspections
-
 - Find Usages on a query label, reporting the Kotlin calls to that query.
 - The `.sq` query listed among the usages of the generated Kotlin it produced: the label for a query
   function, and the bind argument for one of its parameters.
