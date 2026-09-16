@@ -1,5 +1,8 @@
 # sqld-lite-syntax
 
+[![JetBrains Marketplace](https://img.shields.io/jetbrains/plugin/v/34288-sqld-lite-syntax?label=JetBrains%20Marketplace)](https://plugins.jetbrains.com/plugin/34288-sqld-lite-syntax)
+[![Downloads](https://img.shields.io/jetbrains/plugin/d/34288-sqld-lite-syntax?label=Downloads)](https://plugins.jetbrains.com/plugin/34288-sqld-lite-syntax)
+
 An IntelliJ IDEA plugin for SqlDelight `.sq` and `.sqm` files. It is a lightweight replacement for the
 [SqlDelight IntelliJ plugin](https://github.com/sqldelight/sqldelight/tree/main/sqldelight-idea-plugin).
 
@@ -42,6 +45,14 @@ Find Usages on a table, reporting its whole history under named groups:
 The gutter icon has its own entry under Settings | Editor | General | Gutter Icons:
 
 ![The SqlD-Lite Syntax entry on the Gutter Icons page](docs/images/gutter-icon-setting.png)
+
+## Installing
+
+From the IDE: Settings | Plugins | Marketplace, search for "SqlD-Lite Syntax".
+
+From the web: the plugin page is
+[SqlD-Lite Syntax](https://plugins.jetbrains.com/plugin/34288-sqld-lite-syntax), which also holds
+every published version for a manual download and install from disk.
 
 ## Requirements
 
