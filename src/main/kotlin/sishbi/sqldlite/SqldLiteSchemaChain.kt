@@ -1,13 +1,10 @@
 package sishbi.sqldlite
 
 import com.alecstrong.sql.psi.core.psi.NamedElement
-import com.alecstrong.sql.psi.core.psi.SchemaContributorIndex
 import com.alecstrong.sql.psi.core.psi.SqlCreateTableStmt
 import com.alecstrong.sql.psi.core.psi.SqlCreateViewStmt
 import com.alecstrong.sql.psi.core.psi.SqlCreateVirtualTableStmt
 import com.intellij.openapi.project.DumbService
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.stubs.StubIndex
 import com.intellij.psi.util.PsiTreeUtil
 
 /**
@@ -16,7 +13,11 @@ import com.intellij.psi.util.PsiTreeUtil
  * A migration chain is a linked list, not a set. sql-psi gives each `ALTER TABLE` a table of its
  * own, so the name in one `ALTER` resolves to the `ALTER` below it and a query resolves only to the
  * newest one. A search from any single link therefore reports one neighbour and stops, which hides
- * most of a table's history. Searching from every link at once reports the whole of it.
+ * most of a table's history.
+ *
+ * `SqlFileBase.schemaChain` reads the whole chain, oldest first. This turns each statement it
+ * returns into the name that statement declares, which is what a search and a declaration jump both
+ * work on.
  */
 object SqldLiteSchemaChain {
 
@@ -25,24 +26,17 @@ object SqldLiteSchemaChain {
      * nothing declares it, such as a table a query invents, or while the IDE indexes.
      */
     fun of(name: NamedElement): List<NamedElement> {
-        val project = name.project
-        val key = name.name
-        if (DumbService.isDumb(project)) return listOf(name)
+        // The chain is read from a stub index, which cannot be read while the project indexes.
+        if (DumbService.isDumb(name.project)) return listOf(name)
+        val file = name.containingFile as? SqldLiteFile ?: return listOf(name)
 
-        val index = SchemaContributorIndex.getInstance(project)
-        val scope = GlobalSearchScope.allScope(project)
-
-        // The index is keyed by the kind of statement, such as TableElement, not by what it
-        // declares, so every kind is asked and the answers are filtered by name. There is one key
-        // per kind, so this reads a handful of short lists.
-        val declarations = StubIndex
-            .getInstance()
-            .getAllKeys(SchemaContributorIndex.KEY, project)
-            .flatMap { index.get(it, project, scope) }
-            .filter { it.name() == key }
-            // The statement's own name, which is the first of its kind: an ALTER TABLE ... RENAME
-            // carries a second one, and that names the table the rename produces, not this one.
-            .mapNotNull { PsiTreeUtil.findChildOfType(it, name.javaClass) }
+        val declarations =
+            file
+                .schemaChain(name.name)
+                // The statement's own name, which is the first of its kind: an ALTER TABLE ...
+                // RENAME carries a second one, and that names the table the rename produces, not
+                // this one.
+                .mapNotNull { PsiTreeUtil.findChildOfType(it, name.javaClass) }
 
         // [name] leads, and is here even when the index has no statement holding it: it is the one
         // the caret is on, and a table a query invents is declared nowhere.

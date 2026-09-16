@@ -37,6 +37,9 @@ kotlin {
 // repositories. That makes Gradle ignore the settings-level ones entirely, so they are repeated
 // here. Without this the IntelliJ Platform artefacts stop resolving.
 repositories {
+    // The sql-psi fork at ~/IdeaProjects/sql-psi is read from here, not from a remote. Build it
+    // with `./gradlew publishToMavenLocal` in that repo after any change to it.
+    mavenLocal()
     mavenCentral()
 
     intellijPlatform {
@@ -72,16 +75,15 @@ dependencies {
     // For new tests that do not need an IntelliJ fixture.
     testImplementation(libs.junit.jupiter)
 
-    // SQL grammar, lexer and PSI. Compiled against platform 231, while this plugin targets 252.
-    // verifyPlugin is what proves that difference has not broken binary compatibility.
+    // SQL grammar, lexer and PSI, from the local fork. Compiled against platform 233, while this
+    // plugin targets 252. verifyPlugin is what proves that difference has not broken binary
+    // compatibility.
     //
-    // The platform already puts kotlin-stdlib and the JetBrains annotations on the plugin
-    // classloader's parent. sql-psi drags in its own copies, and shipping a second kotlin-stdlib
-    // is forbidden -> https://jb.gg/intellij-platform-kotlin-stdlib
-    implementation(libs.sql.psi) {
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
-        exclude(group = "org.jetbrains", module = "annotations")
-    }
+    // No excludes. The fork declares kotlin-stdlib as compileOnly, so it appears in neither the
+    // POM nor the Gradle module metadata, and the JetBrains annotations came in only as a
+    // transitive of stdlib. The platform supplies both on the plugin classloader's parent, and
+    // shipping a second kotlin-stdlib is forbidden -> https://jb.gg/intellij-platform-kotlin-stdlib
+    implementation(libs.sql.psi)
 
     // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {

@@ -38,6 +38,18 @@ the attribute rules and the traps, all of which fail silently.
   `SqldLitePlatformTestCase`.
 - Prefer extending an existing test over adding a new one.
 
+## The sql-psi dependency
+
+`sishbi.sql-psi:core` is a fork, at https://github.com/sishbi/sql-psi, tag `0.9.0`. It is published
+to no remote repository. Clone that repo and run `./gradlew publishToMavenLocal`; this build reads
+it from `mavenLocal()`. A version alone is not a pin for a local artefact, so
+`gradle/verification-metadata.xml` holds its checksum, and a copy built from anything other than the
+tag fails the build. That file names the refresh command.
+
+The fork declares `kotlin-stdlib` as `compileOnly`, so the dependency needs no excludes. The
+platform supplies the stdlib and the JetBrains annotations, and a second copy of either on the
+plugin classloader is forbidden: https://jb.gg/intellij-platform-kotlin-stdlib
+
 ## Things that have already bitten
 
 - `PsiSearchHelper.processElementsWithWord` runs its processor on one thread per file. The
@@ -57,27 +69,29 @@ the attribute rules and the traps, all of which fail silently.
   `ApplicationManager.getApplication().runReadAction(Computable { ... })`.
 - Find Usages only offers an element as a target when it is a `PsiNamedElement`. Go To Declaration
   does not need that, so one can work while the other says "Cannot search for usages".
-- `SqlFileBase.order` is what stops a migration chain looping. sql-psi builds a `.sqm` file's schema
-  only from the statements before the one it is reading, and only from migrations numbered lower,
-  and it reads that number from `order`. A null there makes every `ALTER TABLE` ask the table it
-  alters for its columns, which asks that same `ALTER TABLE` back, and the IDE dies of a
-  `StackOverflowError`. Deriving the number from the file name is not enough on its own: a name
-  holding no digits gave a null and brought the crash back. `SqldLiteFile.order` now falls back to
-  zero, because a migration numbered wrongly resolves some names incompletely, while a migration
-  numbered not at all crashes the IDE.
+- `SqlFileBase.order` is what orders a migration chain. sql-psi builds a `.sqm` file's schema only
+  from the statements before the one it is reading, and only from migrations numbered lower, and it
+  reads that number from `order`. A null there makes every migration a queries file, so two
+  migrations altering one table each resolve to the other. That once killed the IDE with a
+  `StackOverflowError`; the fork guards the recursion, so a wrong `order` now resolves names
+  incompletely instead. `SqldLiteFile.order` still falls back to zero rather than null, because a
+  migration numbered wrongly resolves some names, while one numbered not at all resolves none.
 - sql-psi resolves a table, view or column across files through `SchemaContributorIndex`, a stub
-  index. The file node type must be an `IStubFileElementType` or the file contributes nothing to it,
-  and every name resolves only inside its own file. Nothing reports this: the resolution just
-  returns null.
-- `SchemaContributorIndex` is keyed by the kind of statement, such as
-  `com.alecstrong.sql.psi.core.psi.TableElement`, not by the name the statement declares. Asking it
-  for a table name returns nothing at all. Read every key and filter the answers by
-  `SchemaContributor.name()`.
+  index. The file node type must build stubs or the file contributes nothing to it, and every name
+  resolves only inside its own file. Nothing reported this: the resolution just returned null. The
+  fork narrows `SqlParserDefinition.getFileNodeType` to `StubFileElementType<*>`, so it is now a
+  compile error.
+- `SchemaContributorIndex.byKey` is keyed by the kind of statement, such as
+  `com.alecstrong.sql.psi.core.psi.TableElement`. Use `byName` to ask by the name a statement
+  declares; the fork added it, because the upstream index answered only the first question. The
+  method is `byKey` and not `get` because `get` erased to the deprecated `AbstractStubIndex.get`,
+  and the Plugin Verifier reported that against this plugin.
 - A migration chain is a linked list, not a set. The name in an `ALTER TABLE` resolves to the
   statement below it, and a query resolves only to the newest one, so a search from any single link
-  reports one neighbour. `SqldLiteSchemaChain` collects the whole chain, and
-  `SqldLiteTargetElementEvaluator` keeps a declaration as its own target: without it, a search from
-  the newest migration titles the panel with the one before it.
+  reports one neighbour. `SqlFileBase.schemaChain` reads the whole chain oldest first,
+  `SqldLiteSchemaChain` turns it into names, and `SqldLiteTargetElementEvaluator` keeps a
+  declaration as its own target: without it, a search from the newest migration titles the panel
+  with the one before it.
 - A line marker must hang off a leaf element, and an index-reading marker belongs in
   `collectSlowLineMarkers`.
 - The plugin registers a file type, a parser definition and stub element type holders, so it cannot
@@ -90,7 +104,8 @@ the attribute rules and the traps, all of which fail silently.
   element, never from `getIcon(flags)` and never through the `itemPresentationProvider` extension
   point. `PsiElement2UsageTargetAdapter` reads the presentation directly, so the extension point is
   never consulted. `PsiElementBase.getPresentation()` returns null, which is why a sql-psi name
-  element shows no icon: the fix must be a `getPresentation()` override on the element class itself.
+  element showed no icon. The fork overrides `getPresentation()` on `SqlNamedElementImpl`, which is
+  the only place it can go.
 
 ## Commands
 

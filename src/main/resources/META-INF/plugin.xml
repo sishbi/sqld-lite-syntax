@@ -34,6 +34,7 @@
                                        implementationClass="sishbi.sqldlite.SqldLiteSyntaxHighlighterFactory"/>
         <annotator language="SqldLite" implementationClass="sishbi.sqldlite.SqldLiteHighlightAnnotator"/>
         <colorSettingsPage implementation="sishbi.sqldlite.SqldLiteColorSettingsPage"/>
+        <iconProvider implementation="sishbi.sqldlite.SqldLiteIconProvider"/>
         <fileBasedIndex implementation="sishbi.sqldlite.SqldLiteLabelIndex"/>
         <gotoDeclarationHandler implementation="sishbi.sqldlite.SqldLiteGotoDeclarationHandler"/>
         <gotoDeclarationHandler implementation="sishbi.sqldlite.SqldLiteSqGotoDeclarationHandler"/>

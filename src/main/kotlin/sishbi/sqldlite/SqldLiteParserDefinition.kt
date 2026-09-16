@@ -9,11 +9,9 @@ import com.intellij.psi.stubs.PsiFileStub
 import com.intellij.psi.tree.IStubFileElementType
 
 /**
- * Stub-backed, not a plain [IFileElementType].
- *
- * sql-psi answers "which table does this name mean" out of `SchemaContributorIndex`, a stub index.
- * A file whose node type builds no stubs contributes nothing to it, so every table resolved to
- * itself and to nothing else: a query in one file never found the `CREATE TABLE` in another.
+ * Stub-backed. `SqlParserDefinition.getFileNodeType` requires it, so the compiler enforces what
+ * used to be a silent failure: a file whose node type builds no stubs contributes nothing to
+ * `SchemaContributorIndex`, and every table resolved to itself and to nothing else.
  */
 object SqldLiteFileElementType : IStubFileElementType<PsiFileStub<SqldLiteFile>>(SqldLiteLanguage) {
     override fun getExternalId() = "SqldLite.FILE"

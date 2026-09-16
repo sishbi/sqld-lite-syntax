@@ -4,6 +4,28 @@
 
 ## [Unreleased]
 
+### Added
+
+- A database icon beside a table, view or column name, so a Find Usages target line, a Go To Symbol
+  row and a structure view row can be told apart. Every name showed the icon of its file before.
+
+### Fixed
+
+- Two `.sq` files that both alter the same table no longer freeze the IDE. Each statement resolved to
+  the other and the recursion ended in a `StackOverflowError`.
+- Find Usages on a table, view or column reports the whole migration chain from the index, rather
+  than walking one reference at a time from the statement the caret is on.
+- The name and the icon on a Find Usages target line, which the platform reads from the element's
+  presentation. A sql-psi name element supplied neither.
+
+### Changed
+
+- SQL parsing, lexing and PSI now come from a fork of `sql-psi`, at
+  <https://github.com/sishbi/sql-psi>, which carries the fixes above. The plugin no longer excludes
+  the Kotlin standard library from it, and pins its checksum.
+
+## [0.1.0] - 2026-09-15
+
 The initial version. It is a lightweight replacement for the official SqlDelight IntelliJ plugin, and
 covers syntax highlighting and code navigation. It generates no code.
 

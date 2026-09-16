@@ -1,6 +1,9 @@
 package sishbi.sqldlite
 
+import com.alecstrong.sql.psi.core.psi.SqlColumnName
 import com.alecstrong.sql.psi.core.psi.SqlTableName
+import com.intellij.icons.AllIcons
+import com.intellij.navigation.NavigationItem
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
@@ -8,6 +11,7 @@ import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.CommonProcessors
+import com.intellij.util.PsiIconUtil
 import org.jetbrains.kotlin.psi.KtClassOrObject
 
 /**
@@ -171,6 +175,34 @@ class SqldLiteReverseNavigationTest : SqldLitePlatformTestCase() {
             ),
             usagesOf(table).mapNotNull { it.element?.containingFile?.name }.distinct().sorted(),
         )
+    }
+
+    /**
+     * The Find Usages target line, Go To Symbol and the structure view all draw a name from its
+     * [com.intellij.navigation.ItemPresentation], and the icon in it comes from the
+     * `iconProvider` extension point. Without [SqldLiteIconProvider] every name in a `.sq` file
+     * showed the icon of the file itself.
+     *
+     * The icon is read through the same extension point the platform reads, not from the
+     * presentation. On the EDT the platform wraps a presentation icon in a deferred icon, which is
+     * equal to nothing.
+     */
+    fun testShowsADatabaseIconForATableAndAColumn() {
+        val file = myFixture.addFileToProject(
+            "Reservations.sq",
+            "CREATE TABLE reservations (\n  id TEXT NOT NULL\n);\n",
+        )
+        val table = requireNotNull(PsiTreeUtil.findChildOfType(file, SqlTableName::class.java))
+        val column = requireNotNull(PsiTreeUtil.findChildOfType(file, SqlColumnName::class.java))
+
+        assertSame(AllIcons.Nodes.DataTables, PsiIconUtil.getIconFromProviders(table, 0))
+        assertSame(AllIcons.Nodes.DataColumn, PsiIconUtil.getIconFromProviders(column, 0))
+
+        // The name is read when the usage is built, so the presentation must carry it and the file
+        // it sits in, not compute them when the cell is painted.
+        val presentation = requireNotNull((table as NavigationItem).presentation)
+        assertEquals("reservations", presentation.presentableText)
+        assertEquals("Reservations.sq", presentation.locationString)
     }
 
     /** What the Find Usages panel shows for [element], across every element the handler searches. */
