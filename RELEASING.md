@@ -30,7 +30,8 @@ Deleting drafts is unaffected, because a draft is not a published release.
 
 ## One-time setup
 
-Do these once. Until all of them are done, `release.yml` fails at the publish step.
+Do these once. `release.yml` fails at the publish step until steps 1 and 3 are done. Step 4 is
+optional and step 5 is already in the build.
 
 ### 1. Upload the first version by hand
 
@@ -54,14 +55,22 @@ plugin-level, so every later release keeps them. The files are in `docs/images/`
 
 ### 3. Create a Marketplace permanent token
 
+Required. This is the one secret `publishPlugin` cannot do without.
+
 In <https://plugins.jetbrains.com/author/me/tokens>, create a token with the **Marketplace** scope.
 Save it as the repository secret `PUBLISH_TOKEN`.
 
 ### 4. Create a signing certificate
 
-The Marketplace requires a signed plugin. Follow
-<https://plugins.jetbrains.com/docs/intellij/plugin-signing.html> to generate a private key and a
-self-signed certificate chain, then save three repository secrets:
+Optional, and not a gate on publishing. The Marketplace signs every plugin with its own
+certificate; the author signature is a second one on top of that. Without it the upload still
+succeeds, and the IDE shows a warning dialog when someone installs the plugin
+-> <https://plugins.jetbrains.com/docs/intellij/plugin-signing.html>. `signPlugin` is skipped
+whenever no certificate is configured, so a release with only `PUBLISH_TOKEN` set publishes
+unsigned.
+
+To sign, follow that page to generate a private key and a self-signed certificate chain, then save
+three repository secrets:
 
 | Secret | Holds |
 |---|---|
