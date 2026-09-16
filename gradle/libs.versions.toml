@@ -3,17 +3,19 @@
 # junit.framework.TestCase, which ships in the JUnit 4 artefact. The vintage engine runs them on
 # the JUnit 5 platform; nothing in this repo calls a JUnit 4 API.
 junit = "4.13.2"
+# Assertions in the `:sql-psi` tests, as written upstream. Nothing else in this repo uses it.
+assertk = "0.28.1"
+# SqlCoreEnvironment, which the `:sql-psi` tests run in, reads a directory off the main thread.
+coroutines = "1.11.0"
 # JUnit 5/6 platform. The BOM aligns jupiter, vintage and the launcher.
 junitBom = "6.1.3"
-# SQL grammar, lexer and PSI. 0.8.0 is tagged upstream but is not published to any repository.
-sqlPsi = "0.7.3"
 # The IDE this plugin compiles against. It is the OLDEST supported build, not the newest: the
 # platform's own class files set the bytecode floor, so compiling against a newer IDE produces a
 # plugin the older ones cannot load.
 intellijIdea = "2025.2"
 # The oldest and newest IDE builds the plugin declares support for, and the range verifyPlugin
-# checks. 252 is IntelliJ 2025.2. The floor is set by the bundled Kotlin plugin's API, not by
-# sql-psi, which is compiled against 231.
+# checks. 252 is IntelliJ 2025.2. The floor is set by the bundled Kotlin plugin's API; the SQL PSI
+# is built here, against the same platform as the rest of the plugin.
 intellijIdeaSinceBuild = "252"
 intellijIdeaUntilBuild = "262.*"
 # Only feeds GrammarKit's own generator classpath at build time. Unrelated to what the plugin
@@ -26,4 +28,7 @@ junit-bom = { module = "org.junit:junit-bom", version.ref = "junitBom" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine" }
-sql-psi = { module = "app.cash.sql-psi:core", version.ref = "sqlPsi" }
+# The `:sql-psi` subproject's own test dependencies. It is source in this repo, so it has no
+# coordinates of its own.
+assertk = { module = "com.willowtreeapps.assertk:assertk", version.ref = "assertk" }
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }

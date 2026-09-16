@@ -72,16 +72,14 @@ dependencies {
     // For new tests that do not need an IntelliJ fixture.
     testImplementation(libs.junit.jupiter)
 
-    // SQL grammar, lexer and PSI. Compiled against platform 231, while this plugin targets 252.
-    // verifyPlugin is what proves that difference has not broken binary compatibility.
+    // SQL grammar, lexer and PSI. Source in this repo rather than an artefact, so the build needs
+    // no local publish, no remote repository and no credential, and it compiles against the same
+    // platform as the rest of the plugin. Provenance and the route back upstream: sql-psi/README.md.
     //
-    // The platform already puts kotlin-stdlib and the JetBrains annotations on the plugin
-    // classloader's parent. sql-psi drags in its own copies, and shipping a second kotlin-stdlib
-    // is forbidden -> https://jb.gg/intellij-platform-kotlin-stdlib
-    implementation(libs.sql.psi) {
-        exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
-        exclude(group = "org.jetbrains", module = "annotations")
-    }
+    // kotlin-stdlib is absent by design: the platform supplies it on the plugin classloader's
+    // parent, and shipping a second copy is forbidden
+    // -> https://jb.gg/intellij-platform-kotlin-stdlib
+    implementation(project(":sql-psi"))
 
     // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {

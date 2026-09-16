@@ -20,6 +20,7 @@ the official SqlDelight IntelliJ plugin.
 | `src/main/resources/messages/SqldLiteMessageBundle.properties` | Every user-visible string. |
 | `src/test/resources/` | `.sq` and `.sqm` fixtures. A `.sqm` fixture is named for its number, as a real migration is. |
 | `src/test/kotlin/sishbi/sqldlite/fixtures/` | Kotlin that stands in for the generated queries class, so navigation can be tried by hand. |
+| `sql-psi/` | The SQL grammar, lexer and PSI, as source. Upstream's code, upstream's package names. |
 | `.ai-local-plans/` | Plans and drafts. Git-ignored. |
 
 ## Adding a grammar rule
@@ -37,6 +38,21 @@ the attribute rules and the traps, all of which fail silently.
 - Parser tests extend `ParsingTestCase`; anything needing the platform extends
   `SqldLitePlatformTestCase`.
 - Prefer extending an existing test over adding a new one.
+
+## The `:sql-psi` subproject
+
+The SQL grammar, lexer and PSI are source in this repository, under `sql-psi/`, taken from the fork
+at https://github.com/sishbi/sql-psi. They are not a dependency: there is no local publish, no
+remote repository and no credential, and they compile against the same platform as the plugin.
+`sql-psi/README.md` holds the provenance and the route back to upstream. Read it before changing
+anything under `sql-psi/src`.
+
+The package names are upstream's, `com.alecstrong.sql.psi.*`, because `SqldLite.bnf` and
+`plugin.xml` name them.
+
+`kotlin-stdlib` is absent from the whole build on purpose. The platform supplies it on the plugin
+classloader's parent, and shipping a second copy is forbidden:
+https://jb.gg/intellij-platform-kotlin-stdlib
 
 ## Things that have already bitten
 
@@ -57,27 +73,29 @@ the attribute rules and the traps, all of which fail silently.
   `ApplicationManager.getApplication().runReadAction(Computable { ... })`.
 - Find Usages only offers an element as a target when it is a `PsiNamedElement`. Go To Declaration
   does not need that, so one can work while the other says "Cannot search for usages".
-- `SqlFileBase.order` is what stops a migration chain looping. sql-psi builds a `.sqm` file's schema
-  only from the statements before the one it is reading, and only from migrations numbered lower,
-  and it reads that number from `order`. A null there makes every `ALTER TABLE` ask the table it
-  alters for its columns, which asks that same `ALTER TABLE` back, and the IDE dies of a
-  `StackOverflowError`. Deriving the number from the file name is not enough on its own: a name
-  holding no digits gave a null and brought the crash back. `SqldLiteFile.order` now falls back to
-  zero, because a migration numbered wrongly resolves some names incompletely, while a migration
-  numbered not at all crashes the IDE.
+- `SqlFileBase.order` is what orders a migration chain. sql-psi builds a `.sqm` file's schema only
+  from the statements before the one it is reading, and only from migrations numbered lower, and it
+  reads that number from `order`. A null there makes every migration a queries file, so two
+  migrations altering one table each resolve to the other. That once killed the IDE with a
+  `StackOverflowError`; the fork guards the recursion, so a wrong `order` now resolves names
+  incompletely instead. `SqldLiteFile.order` still falls back to zero rather than null, because a
+  migration numbered wrongly resolves some names, while one numbered not at all resolves none.
 - sql-psi resolves a table, view or column across files through `SchemaContributorIndex`, a stub
-  index. The file node type must be an `IStubFileElementType` or the file contributes nothing to it,
-  and every name resolves only inside its own file. Nothing reports this: the resolution just
-  returns null.
-- `SchemaContributorIndex` is keyed by the kind of statement, such as
-  `com.alecstrong.sql.psi.core.psi.TableElement`, not by the name the statement declares. Asking it
-  for a table name returns nothing at all. Read every key and filter the answers by
-  `SchemaContributor.name()`.
+  index. The file node type must build stubs or the file contributes nothing to it, and every name
+  resolves only inside its own file. Nothing reported this: the resolution just returned null.
+  `SqlParserDefinition.getFileNodeType` is now narrowed to `StubFileElementType<*>`, so it is a
+  compile error.
+- `SchemaContributorIndex.byKey` is keyed by the kind of statement, such as
+  `com.alecstrong.sql.psi.core.psi.TableElement`. Use `byName` to ask by the name a statement
+  declares; `byName` is a local addition, because upstream answered only the first question. The
+  method is `byKey` and not `get` because `get` erased to the deprecated `AbstractStubIndex.get`,
+  and the Plugin Verifier reported that against this plugin.
 - A migration chain is a linked list, not a set. The name in an `ALTER TABLE` resolves to the
   statement below it, and a query resolves only to the newest one, so a search from any single link
-  reports one neighbour. `SqldLiteSchemaChain` collects the whole chain, and
-  `SqldLiteTargetElementEvaluator` keeps a declaration as its own target: without it, a search from
-  the newest migration titles the panel with the one before it.
+  reports one neighbour. `SqlFileBase.schemaChain` reads the whole chain oldest first,
+  `SqldLiteSchemaChain` turns it into names, and `SqldLiteTargetElementEvaluator` keeps a
+  declaration as its own target: without it, a search from the newest migration titles the panel
+  with the one before it.
 - A line marker must hang off a leaf element, and an index-reading marker belongs in
   `collectSlowLineMarkers`.
 - The plugin registers a file type, a parser definition and stub element type holders, so it cannot
@@ -90,7 +108,11 @@ the attribute rules and the traps, all of which fail silently.
   element, never from `getIcon(flags)` and never through the `itemPresentationProvider` extension
   point. `PsiElement2UsageTargetAdapter` reads the presentation directly, so the extension point is
   never consulted. `PsiElementBase.getPresentation()` returns null, which is why a sql-psi name
-  element shows no icon: the fix must be a `getPresentation()` override on the element class itself.
+  element showed no icon. `SqlNamedElementImpl` now overrides `getPresentation()`, which is the only
+  place it can go.
+- The icon inside that presentation comes from `ElementBase.getIcon`, which asks the `iconProvider`
+  extension point and otherwise falls back to the icon of the containing file.
+  `SqldLiteIconProvider` is what puts a database icon on a table, view or column name.
 
 ## Commands
 
