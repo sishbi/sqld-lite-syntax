@@ -6,30 +6,24 @@
 
 ### Added
 
-- The doc popup, on cmd-hover and under Quick Documentation, shows what a name in a `.sq` file
-  declares: a query as the function a caller sees, a bind argument, a column as its column
-  definition, a table or view as the head of the statement that declares it. Quick Documentation
-  adds the query's doc comment and the statement itself, coloured as the editor colours it.
-- A Kotlin call site in the same popup reads as the function that holds it, with the class it
+- Cmd-hover and Quick Documentation on a name in a `.sq` file show what it declares: a query as the
+  function a caller writes, a bind argument, a column as its column definition, a table or view as
+  the statement that creates it. Quick Documentation adds the query's doc comment and the statement
+  itself, coloured as the editor colours it.
+- The same popup on a Kotlin call to a query shows the function holding the call, with the class it
   belongs to under it.
-
-### Changed
-
-- The Marketplace listing says what the plugin does. It said one sentence, so a search for
-  SqlDelight navigation, PostgreSQL migration syntax or Find Usages found nothing in it.
 
 ### Fixed
 
-- A row of the "Choose Declaration" popup, and of the gutter's caller list, is one name wide. A
-  call spread over twenty argument lines made a row several screens wide, because the platform
-  titles a row it has no presentation for with the whole text of the element.
-- Two calls to one query are told apart: each row names the class and the member holding the call,
-  and a lambda around the call no longer makes it `<anonymous>`.
-- Cmd-hover names what it is showing. A call site read `Sqld Lite Call Site Target "create"`, from
-  the platform's wording of a class name, and a query label carried no type at all.
-- A name that resolves to no schema statement shows itself. It showed the first line of whatever
-  statement held it, so a column of a table the migrations only ever alter read as the query using
-  it.
+- The list of Kotlin callers, from a query label or from the gutter icon, shows one short row for
+  each call, named after the class and the method holding it. A call written over several argument
+  lines filled its row with the whole call, and every row read alike.
+- A call inside a lambda is named after the method around it. It read `<anonymous>`.
+- The hover popup says what it is showing: a query, a query call, a bind argument, a table, a view
+  or a column. It showed the name of an internal class for a Kotlin call, and nothing at all for a
+  query.
+- A column of a table that the migrations only ever alter shows its own name. It showed the first
+  line of the query using it.
 
 ## 0.1.2 - 2026-09-16
 

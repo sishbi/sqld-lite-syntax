@@ -181,8 +181,10 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          if [ -z "$(git diff --name-only "$BASE_SHA"...HEAD -- src/main)" ]; then
-            echo "Nothing changed under src/main, so no changelog entry is needed."
+          # Only the code. A change to the listing text, the icons or the message bundle alone is
+          # not something a user reads a changelog for.
+          if [ -z "$(git diff --name-only "$BASE_SHA"...HEAD -- src/main/kotlin)" ]; then
+            echo "No Kotlin source changed, so no changelog entry is needed."
             exit 0
           fi
 
@@ -190,7 +192,7 @@ jobs:
           ./gradlew getChangelog --unreleased --no-header --quiet --console=plain --output-file=$NOTE
 
           if [ -z "$(tr -d '[:space:]' < $NOTE)" ]; then
-            echo "::error file=CHANGELOG.md::This pull request changes src/main, so the '## Unreleased' section of CHANGELOG.md needs an entry. The release draft and the plugin's change-notes are both made from it."
+            echo "::error file=CHANGELOG.md::This pull request changes the plugin's code, so the '## Unreleased' section of CHANGELOG.md needs an entry. The release draft and the plugin's change-notes are both made from it. RELEASING.md says what an entry reads like."
             exit 1
           fi
 
