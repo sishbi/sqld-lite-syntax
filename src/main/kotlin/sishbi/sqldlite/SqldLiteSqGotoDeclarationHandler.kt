@@ -40,14 +40,14 @@ class SqldLiteSqGotoDeclarationHandler : GotoDeclarationHandler {
     /**
      * The Kotlin calls to the query label under the caret, or null when the caret is not on one.
      *
-     * The target is the whole call, not its callee. Both land the caret on the same line, and a
-     * call always exists where a callee may not, so this cannot fail on a call the parser recovered
-     * from.
+     * The target is the callee, not the whole call, so the Choose Declaration popup names a row
+     * with the query name. A call that spans many argument lines would otherwise fill the row with
+     * its whole text. Both land the caret on the same line.
      */
     private fun labelTargets(element: PsiElement): List<PsiElement>? {
         val label = PsiTreeUtil.getParentOfType(element, SqldLiteStmtIdentifierMixin::class.java)
             ?: return null
-        return SqldLiteQueryCallSites.of(label)
+        return SqldLiteQueryCallSites.navigationTargetsOf(label)
     }
 
     /**
@@ -56,6 +56,6 @@ class SqldLiteSqGotoDeclarationHandler : GotoDeclarationHandler {
      */
     private fun bindArgumentTargets(element: PsiElement): List<PsiElement>? {
         val parameter = PsiTreeUtil.getParentOfType(element, SqlBindParameter::class.java) ?: return null
-        return SqldLiteBindArgumentSites.of(parameter)
+        return SqldLiteBindArgumentSites.navigationTargetsOf(parameter)
     }
 }

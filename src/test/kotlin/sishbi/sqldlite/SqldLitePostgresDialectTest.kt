@@ -61,7 +61,7 @@ class SqldLitePostgresDialectTest : ParsingTestCase("", "sq", SqldLiteParserDefi
      * `SET LOCAL`, `CREATE INDEX CONCURRENTLY`, `USING btree` and a `::` cast.
      */
     fun testParsesPostgresMigration() {
-        assertNoErrors(createPsiFile("2", loadFile("2.sqm")))
+        assertNoErrors(createPsiFile("3", loadFile("3.sqm")))
     }
 
     private fun assertNoErrors(file: PsiFile) {

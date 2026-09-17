@@ -3,13 +3,16 @@ package sishbi.sqldlite
 import com.alecstrong.sql.psi.core.psi.SqlColumnName
 import com.alecstrong.sql.psi.core.psi.SqlTableName
 import com.intellij.icons.AllIcons
+import com.intellij.codeInsight.navigation.targetPresentation
 import com.intellij.navigation.NavigationItem
+import com.intellij.psi.ElementDescriptionUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.usageView.UsageInfo
+import com.intellij.usageView.UsageViewTypeLocation
 import com.intellij.util.CommonProcessors
 import com.intellij.util.PsiIconUtil
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -28,12 +31,78 @@ class SqldLiteReverseNavigationTest : SqldLitePlatformTestCase() {
     fun testFindsTheKotlinCallForALabel() {
         myFixture.addFileToProject(
             "Caller.kt",
-            "fun caller(queries: Any) {\n    bookLoansQueries.findByMemberId(1)\n}\n",
+            "class Caller {\n" +
+                "    fun caller(queries: Any) {\n" +
+                "        run {\n" +
+                "            bookLoansQueries.findByMemberId(\n" +
+                "                memberId = 1,\n" +
+                "            )\n" +
+                "        }\n" +
+                "    }\n" +
+                "}\n",
         )
 
         val targets = findByMemberIdTargets()
 
         assertEquals(listOf("Caller.kt"), targets.map { it.containingFile.name })
+        // The caret lands on the callee, not on the whole call: a popup row is titled with the
+        // target's presentation, and a call's own text is every argument line joined together.
+        assertEquals(listOf("findByMemberId"), targets.map { it.navigationElement.text })
+
+        // The row also names where the call is, so two calls to one query are told apart. The
+        // lambda around the call is skipped: its own name is "<anonymous>".
+        val presentation = requireNotNull((targets.single() as NavigationItem).presentation)
+        assertEquals("findByMemberId", presentation.presentableText)
+        assertEquals("Caller.caller", presentation.locationString)
+
+        // What the popup itself builds a row from, so the presentation is known to reach it.
+        val row = targetPresentation(targets.single())
+        assertEquals("findByMemberId", row.presentableText)
+        assertEquals("Caller.caller", row.containerText)
+
+        // Cmd-hover shows the target's description, which words the class name without this.
+        assertEquals(
+            "query call",
+            ElementDescriptionUtil.getElementDescription(
+                targets.single(),
+                UsageViewTypeLocation.INSTANCE,
+            ),
+        )
+        // The other direction: a label hovered from Kotlin had no type at all.
+        assertEquals(
+            "query",
+            ElementDescriptionUtil.getElementDescription(
+                labelIn("BookLoans.sq", "findByMemberId"),
+                UsageViewTypeLocation.INSTANCE,
+            ),
+        )
+    }
+
+    /**
+     * Two calls to one query, which is what the Choose Declaration popup is for. Both rows carry
+     * the same name, so the member holding each call is the only thing that tells them apart.
+     */
+    fun testNamesEachCallerWhenAQueryHasSeveral() {
+        myFixture.addFileToProject(
+            "Caller.kt",
+            "class Caller {\n" +
+                "    fun reserve() {\n" +
+                "        bookLoansQueries.findByMemberId(1)\n" +
+                "    }\n" +
+                "\n" +
+                "    fun cancel() {\n" +
+                "        bookLoansQueries.findByMemberId(2)\n" +
+                "    }\n" +
+                "}\n",
+        )
+
+        val rows = findByMemberIdTargets().map { targetPresentation(it) }
+
+        assertEquals(listOf("findByMemberId", "findByMemberId"), rows.map { it.presentableText })
+        assertEquals(
+            listOf("Caller.cancel", "Caller.reserve"),
+            rows.mapNotNull { it.containerText }.sorted(),
+        )
     }
 
     fun testIgnoresACallOnSomethingThatIsNotAQueriesClass() {
@@ -216,6 +285,15 @@ class SqldLiteReverseNavigationTest : SqldLitePlatformTestCase() {
         }
         return usages.results.toList()
     }
+
+    /** The label named [name] in [fileName], which the fixture has already copied. */
+    private fun labelIn(fileName: String, name: String): SqldLiteStmtIdentifierMixin =
+        PsiTreeUtil
+            .findChildrenOfType(
+                myFixture.configureFromTempProjectFile(fileName),
+                SqldLiteStmtIdentifierMixin::class.java,
+            )
+            .first { it.name == name }
 
     /** The targets offered with the caret on the `findByMemberId` label in `BookLoans.sq`. */
     private fun findByMemberIdTargets(): List<PsiElement> {

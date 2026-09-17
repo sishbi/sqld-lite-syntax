@@ -1,0 +1,70 @@
+-- Written for this plugin's tests. Every statement here holds a construct the overlay grammar has
+-- to parse and core SQL rejects. SqldLitePostgresDialectTest lists them.
+
+import sishbi.sqldlite.fixtures.ReservationState;
+
+SET LOCAL lock_timeout = '3s';
+
+CREATE TABLE catalogue_entries (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    reference UUID NOT NULL DEFAULT gen_random_uuid(),
+    edition_id UUID NOT NULL,
+    publisher VARCHAR(255) NOT NULL,
+    weighting DOUBLE PRECISION NOT NULL,
+    average_pages double precision NULL,
+    tags TEXT[],
+    note TEXT NULL,
+    review_day INTEGER,
+    review_month INTEGER,
+    created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now()
+);
+
+ALTER TABLE catalogue_entries
+ADD COLUMN state TEXT AS ReservationState NOT NULL DEFAULT 'HELD';
+
+ALTER TABLE catalogue_entries
+ADD COLUMN source VARCHAR(50) NOT NULL DEFAULT 'IMPORT';
+
+ALTER TABLE catalogue_entries
+ADD COLUMN price_pence INT NOT NULL DEFAULT 0,
+ADD COLUMN withdrawn DATE;
+
+ALTER TABLE catalogue_entries ADD COLUMN IF NOT EXISTS retention_days INT NULL;
+
+ALTER TABLE catalogue_entries RENAME COLUMN price_pence TO price;
+
+ALTER TABLE catalogue_entries RENAME reference TO reference_old;
+
+ALTER TABLE catalogue_entries DROP COLUMN withdrawn, DROP COLUMN source;
+
+ALTER TABLE catalogue_entries DROP reference_old;
+
+ALTER TABLE catalogue_entries
+ADD CONSTRAINT check_review_day CHECK (review_day BETWEEN 1 AND 31);
+
+ALTER TABLE catalogue_entries DROP CONSTRAINT check_review_day;
+
+ALTER TABLE catalogue_entries ALTER COLUMN review_day SET NOT NULL;
+
+ALTER TABLE catalogue_entries ALTER COLUMN review_month DROP NOT NULL;
+
+ALTER TABLE catalogue_entries ALTER COLUMN note SET DEFAULT 'NONE';
+
+ALTER TABLE catalogue_entries ALTER COLUMN note DROP DEFAULT;
+
+ALTER TABLE catalogue_entries ALTER COLUMN retention_days SET DATA TYPE BIGINT USING retention_days;
+
+ALTER TABLE catalogue_entries ALTER COLUMN id DROP IDENTITY IF EXISTS;
+
+ALTER TABLE catalogue_entries ALTER COLUMN updated TYPE TIMESTAMP WITH TIME ZONE;
+
+CREATE INDEX CONCURRENTLY idx_catalogue_entries_publisher ON catalogue_entries(publisher);
+
+CREATE UNIQUE INDEX idx_catalogue_entries_edition ON catalogue_entries(edition_id);
+
+CREATE INDEX catalogue_entries_created ON catalogue_entries USING btree (created);
+
+UPDATE catalogue_entries
+SET updated = '2026-01-01 00:00:00.000000 +00:00'::timestamptz
+WHERE id = 1;

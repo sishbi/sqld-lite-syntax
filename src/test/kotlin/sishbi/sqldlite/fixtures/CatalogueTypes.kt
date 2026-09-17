@@ -1,7 +1,7 @@
 package sishbi.sqldlite.fixtures
 
 /**
- * The types `PostgresQueries.sq` and `2.sqm` import and name in their `AS` column types.
+ * The types `PostgresQueries.sq` and `3.sqm` import and name in their `AS` column types.
  *
  * They sit in the package those files import, because Go To Declaration from an import or from an
  * `AS` column type resolves the name the same way Kotlin does.

@@ -190,7 +190,9 @@ class SqldLiteQueryUsageTest : SqldLitePlatformTestCase() {
                 "}\n",
         )
 
-        assertEquals(listOf("42"), bindArgumentTargets("loan_id"))
+        // The target is the argument name, not its value: the popup titles a row with the target's
+        // own text, and a value as long as a multi-line `if` made a row several screens wide.
+        assertEquals(listOf("loanId"), bindArgumentTargets("loan_id"))
     }
 
     fun testReportsTheBindArgumentAsAUsageOfTheGeneratedParameter() {
@@ -494,7 +496,8 @@ class SqldLiteQueryUsageTest : SqldLitePlatformTestCase() {
         val offset = file.text.indexOf(":$name") + 1
         val element = requireNotNull(file.findElementAt(offset))
 
-        return targets(element, offset).map { it.text }
+        // The target wraps the anchor to carry a presentation, so the text is read through it.
+        return targets(element, offset).map { it.navigationElement.text }
     }
 
     private fun targets(element: PsiElement, offset: Int): List<PsiElement> =

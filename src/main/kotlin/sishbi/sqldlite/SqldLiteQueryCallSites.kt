@@ -34,6 +34,16 @@ object SqldLiteQueryCallSites {
     /** True when [label] has at least one call. */
     fun any(label: SqldLiteStmtIdentifierMixin): Boolean = of(label).isNotEmpty()
 
+    /**
+     * The calls to [label] as navigation targets: the query name, the class and member holding the
+     * call, and the callee as the place the caret lands. [SqldLiteCallSiteTarget] says why.
+     */
+    fun navigationTargetsOf(label: SqldLiteStmtIdentifierMixin): List<PsiElement> =
+        of(label).map { call ->
+            val callee = call.calleeExpression ?: call
+            SqldLiteCallSiteTarget.of(callee, callee.text)
+        }
+
     private fun search(label: SqldLiteStmtIdentifierMixin): List<KtCallExpression> {
         val name = label.name ?: return emptyList()
         val project = label.project

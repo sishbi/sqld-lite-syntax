@@ -1,9 +1,13 @@
-CREATE TABLE book_loans (
-  loan_id TEXT NOT NULL PRIMARY KEY,
+-- A file of schema and nothing else: no query label, so no generated function. The table is its
+-- own, not `book_loans`, because the migration chain declares that one and two declarations of one
+-- table are an error.
+
+CREATE TABLE branch_visits (
+  visit_id TEXT NOT NULL PRIMARY KEY,
   member_id TEXT NOT NULL,
   status TEXT NOT NULL,
   created TEXT NOT NULL
 );
 
-CREATE INDEX book_loans_member_id
-ON book_loans(member_id);
+CREATE INDEX branch_visits_member_id
+ON branch_visits(member_id);

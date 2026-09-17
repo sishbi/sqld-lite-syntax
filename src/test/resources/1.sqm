@@ -1,8 +1,11 @@
-ALTER TABLE book_loans
-ADD COLUMN renewals INTEGER;
+-- The first link of the migration chain. Every column `BookLoans.sq` reads is declared here, so a
+-- name in a query resolves: a table the chain only ever alters declares nothing to resolve to.
 
-ALTER TABLE book_loans
-ADD COLUMN last_note TEXT;
-
-CREATE INDEX book_loans_status
-ON book_loans(status);
+CREATE TABLE book_loans (
+    loan_id TEXT NOT NULL PRIMARY KEY,
+    member_id TEXT NOT NULL,
+    branch_name TEXT NOT NULL,
+    title TEXT NOT NULL,
+    status TEXT NOT NULL,
+    created TEXT NOT NULL
+);

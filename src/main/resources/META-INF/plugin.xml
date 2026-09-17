@@ -46,6 +46,12 @@
         <customUsageSearcher implementation="sishbi.sqldlite.SqldLiteGeneratedQueryUsageSearcher"/>
         <customUsageSearcher implementation="sishbi.sqldlite.SqldLiteSqlFileUsageSearcher"/>
         <usageTypeProvider implementation="sishbi.sqldlite.SqldLiteUsageTypeProvider"/>
+        <elementDescriptionProvider implementation="sishbi.sqldlite.SqldLiteElementDescriptionProvider"/>
+        <lang.documentationProvider language="SqldLite"
+                                    implementationClass="sishbi.sqldlite.SqldLiteDocumentationProvider"/>
+        <!-- Registered a second time without a language, for the call-site target: its own
+             language is Kotlin, so the registration above never reaches it. -->
+        <documentationProvider implementation="sishbi.sqldlite.SqldLiteDocumentationProvider"/>
         <lang.sliceProvider language="SqldLite" implementationClass="sishbi.sqldlite.SqldLiteSliceProvider"/>
         <callHierarchyProvider language="SqldLite"
                                implementationClass="sishbi.sqldlite.SqldLiteCallHierarchyProvider"/>

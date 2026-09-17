@@ -10,6 +10,10 @@ package sishbi.sqldlite.fixtures
 @Suppress("unused")
 class BookLoanService(private val bookLoansQueries: BookLoansQueries) {
 
+    fun reserve(loanId: Long) {
+        bookLoansQueries.updateStatus(status = "RESERVED", loan_id = loanId)
+    }
+
     fun cancel(loanId: Long) {
         bookLoansQueries.updateStatus(status = "CANCELLED", loan_id = loanId)
     }
