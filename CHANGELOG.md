@@ -4,6 +4,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Installing or updating the plugin asks for a restart immediately. The IDE first tried to load the
+  plugin without one, stalled, and then asked for the restart anyway.
+
 ## 0.1.3 - 2026-09-17
 
 ### Added
