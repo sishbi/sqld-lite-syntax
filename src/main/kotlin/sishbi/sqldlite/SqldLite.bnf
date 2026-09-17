@@ -1,4 +1,4 @@
-// Overlay grammar for SqlDelight syntax, composed on top of app.cash.sql-psi:core.
+// Overlay grammar for SqlDelight syntax, composed on top of the :sql-psi subproject's grammar.
 //
 // Only the rules that differ from core SQL are declared here. sql-psi exposes each rule as a
 // replaceable parser, so every rule not declared here still parses as sql-psi parses it. The rules

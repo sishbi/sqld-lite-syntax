@@ -1,11 +1,13 @@
 # Third-party code
 
-## app.cash.sql-psi:core
+## sql-psi
 
 Licence: Apache-2.0. Source: https://github.com/sqldelight/sql-psi
 
-A compile and runtime dependency, whose jar is shipped in the plugin unmodified. It supplies the SQL
-lexer, the SQL parser and the SQL PSI. No sql-psi source is copied into this repository.
+Copied into this repository under `sql-psi/`, and compiled into the plugin. It supplies the SQL
+lexer, the SQL parser and the SQL PSI. The copy is taken from the fork at
+https://github.com/sishbi/sql-psi, which modifies the upstream files; `sql-psi/README.md` lists what
+was taken and what the fork changes, and `sql-psi/LICENSE.txt` is upstream's licence.
 
 ## SqlDelight
 

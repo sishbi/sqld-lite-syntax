@@ -9,7 +9,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.ParsingTestCase
 
 /**
- * Checks that SqlDelight syntax parses on top of the `app.cash.sql-psi:core` grammar.
+ * Checks that SqlDelight syntax parses on top of the `:sql-psi` grammar.
  *
  * These use [ParsingTestCase], not `BasePlatformTestCase`. `BasePlatformTestCase` starts a full IDE
  * and turns any error logged during startup into a test failure. On 2026.2 an unrelated Ultimate
