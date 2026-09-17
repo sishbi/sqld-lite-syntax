@@ -23,6 +23,9 @@ It generates no code; the SqlDelight Gradle plugin still does that.
 - Find Usages on a table or view, listing its whole history: the `CREATE`, every `ALTER` after it,
   and every statement that uses it. The same list comes back from any of those starting points, and
   Go To Declaration from a query reaches the `CREATE`.
+- Cmd-hover and Quick Documentation on a name, saying what it declares: a query as the function a
+  caller writes, a query label as the Kotlin that calls it, a bind argument, and a table, view or
+  column as the statement that creates it.
 - A gutter icon on every label listing the same calls, with the count in its tooltip.
 - An inspection that greys out a label no Kotlin code calls, with a quick fix that deletes it.
 
@@ -37,6 +40,23 @@ its column.
 Highlighting, and the Editor | Color Scheme | SqlDelight page that names every colour:
 
 ![The SqlDelight colour scheme page, with a .sq preview](docs/images/colour-scheme-page.png)
+
+Cmd-hover on a query call in Kotlin names the query it runs, and the `.sq` file holding it:
+
+![A hover popup over a Kotlin query call, showing the query and its file](docs/images/query-tooltip.png)
+
+Cmd-hover on a query label names the Kotlin function that calls it, and the class that function
+belongs to:
+
+![A hover popup over a .sq query label, showing the calling Kotlin function](docs/images/query-call-tooltip.png)
+
+Cmd-hover on a table name shows the statement that creates it, and the migration it is in:
+
+![A hover popup over a table name, showing its CREATE TABLE and migration file](docs/images/table-definition-tooltip.png)
+
+Go To Declaration from a label offers every call to that query, one row for each:
+
+![The Choose Declaration popup, listing two Kotlin calls to one query](docs/images/goto-multiple-implementations.png)
 
 Find Usages on a table, reporting its whole history under named groups:
 
@@ -62,8 +82,10 @@ every published version for a manual download and install from disk.
 
 ## The grammar
 
-`app.cash.sql-psi:core` supplies the SQL lexer, parser and PSI, and covers core SQL only. An overlay
-grammar, `SqldLite.bnf`, adds what SqlDelight and PostgreSQL add on top. It is not a full PostgreSQL
+The `:sql-psi` subproject supplies the SQL lexer, parser and PSI, and covers core SQL only. It is
+source in this repository, taken from a fork of
+[sql-psi](https://github.com/sqldelight/sql-psi); `sql-psi/README.md` holds the provenance. An
+overlay grammar, `SqldLite.bnf`, adds what SqlDelight and PostgreSQL add on top. It is not a full PostgreSQL
 dialect: it covers the constructs a survey of real `.sq` and `.sqm` files found to be needed, and
 every file in that survey parses with no error.
 

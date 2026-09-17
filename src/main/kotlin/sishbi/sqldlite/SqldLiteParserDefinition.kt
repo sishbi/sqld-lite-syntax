@@ -23,7 +23,7 @@ object SqldLiteFileElementType : IStubFileElementType<PsiFileStub<SqldLiteFile>>
 val SQLD_LITE_FILE = SqldLiteFileElementType
 
 /**
- * Supplies the lexer, parser and PSI factory from `app.cash.sql-psi:core`.
+ * Supplies the lexer, parser and PSI factory from the `:sql-psi` subproject.
  *
  * `plugin.xml` must also register `SqlTypes` as a `stubElementTypeHolder` and
  * `SchemaContributorIndexImpl` as a `stubIndex`, or the platform fails at index initialisation with
