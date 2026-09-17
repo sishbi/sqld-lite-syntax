@@ -98,8 +98,12 @@ https://jb.gg/intellij-platform-kotlin-stdlib
   with the one before it.
 - A line marker must hang off a leaf element, and an index-reading marker belongs in
   `collectSlowLineMarkers`.
-- The plugin registers a file type, a parser definition and stub element type holders, so it cannot
-  be hot-reloaded. Restart the sandbox IDE after a change.
+- The plugin registers a file type, a parser definition, stub element type holders and two indexes,
+  so it cannot be hot-reloaded. Restart the sandbox IDE after a change. None of those extension
+  points can ever be unloaded: a language cannot be retracted while PSI and file-type caches are
+  built on it, and an index element type is written into the index files on disk. `<idea-plugin>`
+  therefore carries `require-restart="true"`. Without it the IDE tries the dynamic load first,
+  stalls, and asks for the restart anyway. Keep the attribute.
 - Every icon needs a `_dark` variant beside it. The platform finds it by the `_dark` suffix and
   never derives one from the light file, so a missing variant shows nothing in a dark theme. This
   has bitten twice: `sqldLiteFile_dark.svg` for the file type, and `META-INF/pluginIcon_dark.svg`
