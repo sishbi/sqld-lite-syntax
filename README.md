@@ -26,6 +26,8 @@ It generates no code; the SqlDelight Gradle plugin still does that.
 - Cmd-hover and Quick Documentation on a name, saying what it declares: a query as the function a
   caller writes, a query label as the Kotlin that calls it, a bind argument, and a table, view or
   column as the statement that creates it.
+- A Call Hierarchy for a query, showing the Kotlin functions that call it. It has its own tab in the
+  Find Usages panel.
 - A gutter icon on every label listing the same calls, with the count in its tooltip.
 - An inspection that greys out a label no Kotlin code calls, with a quick fix that deletes it.
 
@@ -72,9 +74,10 @@ Go To Declaration from a label offers every call to that query, one row for each
 
 ![The Choose Declaration popup, listing two Kotlin calls to one query](docs/images/goto-multiple-implementations.png)
 
-Find Usages on a query label lists the Kotlin calls under their own group:
+Find Usages on a query label lists the Kotlin calls under their own group, and the panel's Call
+Hierarchy tab shows the query with the function that calls it beneath:
 
-![Find Usages on a query label, listing the Kotlin call](docs/images/find-usages-query.png)
+![Find Usages on a query label, with the Call Hierarchy tab showing the calling function](docs/images/find-usages-query.png)
 
 Find Usages on the generated Kotlin function reports the `.sq` query it came from, alongside
 everything the Kotlin plugin already finds:
