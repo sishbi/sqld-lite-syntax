@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+## 0.1.4 - 2026-09-17
+
 ### Fixed
 
 - Installing or updating the plugin asks for a restart immediately. The IDE first tried to load the
