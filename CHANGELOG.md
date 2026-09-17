@@ -13,6 +13,11 @@
 - A Kotlin call site in the same popup reads as the function that holds it, with the class it
   belongs to under it.
 
+### Changed
+
+- The Marketplace listing says what the plugin does. It said one sentence, so a search for
+  SqlDelight navigation, PostgreSQL migration syntax or Find Usages found nothing in it.
+
 ### Fixed
 
 - A row of the "Choose Declaration" popup, and of the gutter's caller list, is one name wide. A

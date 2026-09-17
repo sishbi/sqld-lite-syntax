@@ -13,7 +13,31 @@
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-description -->
     <description><![CDATA[
-        Syntax highlighting and code navigation for SqlDelight .sq and .sqm files.
+        <p>Syntax highlighting and code navigation for SqlDelight <code>.sq</code> and
+        <code>.sqm</code> files. It does the same job as the official SqlDelight plugin with less
+        in it. It generates no code; the SqlDelight Gradle plugin does that.</p>
+
+        <ul>
+          <li>Highlighting for SQL and for what SqlDelight adds: query labels, <code>:named</code>
+              and <code>?</code> bind arguments, imports and <code>AS</code> column types. Every
+              colour can be changed under <b>Editor | Color Scheme | SqlDelight</b>.</li>
+          <li>PostgreSQL syntax that core SQL rejects, such as <code>ON CONFLICT</code>,
+              <code>RETURNING</code>, <code>SELECT DISTINCT ON</code>, window functions, array
+              types, <code>GENERATED ALWAYS AS IDENTITY</code>, the <code>::</code> cast, the
+              <code>-&gt;&gt;</code> JSON operators and the PostgreSQL <code>ALTER TABLE</code>
+              actions. A migration written for PostgreSQL is not painted red.</li>
+          <li>Go To Declaration from a Kotlin query call to its query label, from a named argument
+              to the bind argument it fills, and from a label to every Kotlin call. It reads an
+              index, so it works before you build the project.</li>
+          <li>Find Usages on a table, view or column name reports the whole migration chain: the
+              <code>CREATE</code>, every <code>ALTER</code> after it and every statement that uses
+              it. The same list comes back from any of them, and occurrences in <code>.sql</code>
+              files come with it.</li>
+          <li>Quick Documentation and cmd-hover on a query, a bind argument or a table, view or
+              column name show what it declares.</li>
+          <li>A gutter icon on a query label lists the Kotlin calls to it, and an inspection reports
+              a query that nothing calls.</li>
+        </ul>
         ]]></description>
 
     <!-- Product and plugin compatibility requirements.
