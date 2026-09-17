@@ -29,13 +29,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      # Free GitHub Actions Environment Disk Space
-      - name: Maximize Build Space
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          tool-cache: false
-          large-packages: false
-
       # Check out the current repository
       - name: Fetch Sources
         uses: actions/checkout@v7
@@ -68,13 +61,6 @@ jobs:
     needs: [ build ]
     runs-on: ubuntu-latest
     steps:
-
-      # Free GitHub Actions Environment Disk Space
-      - name: Maximize Build Space
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          tool-cache: false
-          large-packages: false
 
       # Check out the current repository
       - name: Fetch Sources
@@ -112,7 +98,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      # Free GitHub Actions Environment Disk Space
+      # Free GitHub Actions Environment Disk Space. Only this job needs it: verifyPlugin downloads
+      # one full IDE distribution for every build in the verified range, which is around 10 GB
+      # against a runner's 25. Every other job downloads one.
       - name: Maximize Build Space
         uses: jlumbroso/free-disk-space@v1.3.1
         with:
