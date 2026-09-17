@@ -26,6 +26,8 @@ It generates no code; the SqlDelight Gradle plugin still does that.
 - Cmd-hover and Quick Documentation on a name, saying what it declares: a query as the function a
   caller writes, a query label as the Kotlin that calls it, a bind argument, and a table, view or
   column as the statement that creates it.
+- A Call Hierarchy for a query, showing the Kotlin functions that call it. It has its own tab in the
+  Find Usages panel.
 - A gutter icon on every label listing the same calls, with the count in its tooltip.
 - An inspection that greys out a label no Kotlin code calls, with a quick fix that deletes it.
 
@@ -54,11 +56,35 @@ Cmd-hover on a table name shows the statement that creates it, and the migration
 
 ![A hover popup over a table name, showing its CREATE TABLE and migration file](docs/images/table-definition-tooltip.png)
 
+Cmd-hover on a column name shows its type, and the migration that declares it:
+
+![A hover popup over a column name, showing its type and migration file](docs/images/column-definition-tooltip.png)
+
+Quick Documentation on the same table name adds the `CREATE TABLE` statement itself, coloured as
+the editor colours it:
+
+![Quick Documentation on a table name, showing its whole CREATE TABLE statement](docs/images/table-quick-documentation.png)
+
+Quick Documentation on a column of a table the migrations only ever alter shows the `ALTER TABLE`
+that adds it:
+
+![Quick Documentation on a column name, showing the ALTER TABLE that adds it](docs/images/column-quick-documentation.png)
+
 Go To Declaration from a label offers every call to that query, one row for each:
 
 ![The Choose Declaration popup, listing two Kotlin calls to one query](docs/images/goto-multiple-implementations.png)
 
-Find Usages on a table, reporting its whole history under named groups:
+Find Usages on a query label lists the Kotlin calls under their own group, and the panel's Call
+Hierarchy tab shows the query with the function that calls it beneath:
+
+![Find Usages on a query label, with the Call Hierarchy tab showing the calling function](docs/images/find-usages-query.png)
+
+Find Usages on the generated Kotlin function reports the `.sq` query it came from, alongside
+everything the Kotlin plugin already finds:
+
+![Find Usages on a generated Kotlin function, listing the .sq query and the Kotlin calls](docs/images/find-usages-kotlin.png)
+
+Find Usages on a table reports its whole history under named groups:
 
 ![Find Usages on a table name, grouped by schema definition and statement](docs/images/find-usages-table.png)
 
@@ -85,9 +111,9 @@ every published version for a manual download and install from disk.
 The `:sql-psi` subproject supplies the SQL lexer, parser and PSI, and covers core SQL only. It is
 source in this repository, taken from a fork of
 [sql-psi](https://github.com/sqldelight/sql-psi); `sql-psi/README.md` holds the provenance. An
-overlay grammar, `SqldLite.bnf`, adds what SqlDelight and PostgreSQL add on top. It is not a full PostgreSQL
-dialect: it covers the constructs a survey of real `.sq` and `.sqm` files found to be needed, and
-every file in that survey parses with no error.
+overlay grammar, `SqldLite.bnf`, adds what SqlDelight and PostgreSQL add on top. It is not a full
+PostgreSQL dialect: it covers the constructs a survey of real `.sq` and `.sqm` files found to be
+needed, and every file in that survey parses with no error.
 
 A construct the survey did not cover may still be unsupported, and a file using one is painted red.
 Adding a rule is described in CLAUDE.md.
