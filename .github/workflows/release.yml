@@ -100,8 +100,16 @@ jobs:
             --force \
             || true
 
+          # Assigned and reviewed by whoever published the release, so it appears in their own
+          # lists. Not `@me`: the author here is github-actions[bot], which cannot be assigned.
+          # A review request needs write access, so it is allowed to fail on its own.
+          WHO="${{ github.event.release.author.login }}"
+
           gh pr create \
             --title "Release follow-up - \`$VERSION\`" \
             --body "Patched \`CHANGELOG.md\` for the \`$VERSION\` release, and raised the patch version in \`gradle.properties\` ready for the next one." \
             --label "$LABEL" \
+            --assignee "$WHO" \
             --head $BRANCH
+
+          gh pr edit "$BRANCH" --add-reviewer "$WHO" || true

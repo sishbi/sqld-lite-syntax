@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+## 0.1.3 - 2026-09-17
+
 ### Added
 
 - Cmd-hover and Quick Documentation on a name in a `.sq` file show what it declares: a query as the
