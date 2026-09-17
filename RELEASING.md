@@ -110,6 +110,25 @@ merge to `main`, edit `version` in `gradle.properties` yourself when the work is
 
 A bug fix needs no edit. The automatic patch bump already covers it.
 
+## What a changelog entry and the description say
+
+Both are read by someone who has never seen this repository and cannot see its code. Write for the
+person choosing whether to install the plugin, not for whoever wrote the change.
+
+- Say what the user sees in the editor. A class name, a file path, an extension point, a pull
+  request number and a commit message belong in the pull request, not here.
+- For a fix, say what it does now and what it did before. "Two calls to one query are told apart"
+  says more than "fixed the presentation".
+- One entry per thing a user notices. Several commits that add one feature are one entry, and a
+  refactor nobody can see is no entry.
+- Leave out anything only a maintainer reads: the build, the workflows, the tests, the fixtures, the
+  documentation, the listing text itself. A release that changes only those has no `## Unreleased`
+  entry, and the `Changelog entry` check does not ask for one.
+- `### Added`, `### Changed`, `### Fixed`, `### Removed`. List items only, no nested lists.
+- The description is the same voice, in the present tense: what the plugin does, named so that a
+  Marketplace search for it finds the plugin. Name the SQL and SqlDelight constructs a reader would
+  search for, because the description is the only text the search reads.
+
 ## Each release
 
 1. Decide the version. A bug fix needs nothing; a feature or a break needs a hand edit to

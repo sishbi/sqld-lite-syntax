@@ -4,6 +4,27 @@
 
 ## Unreleased
 
+### Added
+
+- Cmd-hover and Quick Documentation on a name in a `.sq` file show what it declares: a query as the
+  function a caller writes, a bind argument, a column as its column definition, a table or view as
+  the statement that creates it. Quick Documentation adds the query's doc comment and the statement
+  itself, coloured as the editor colours it.
+- The same popup on a Kotlin call to a query shows the function holding the call, with the class it
+  belongs to under it.
+
+### Fixed
+
+- The list of Kotlin callers, from a query label or from the gutter icon, shows one short row for
+  each call, named after the class and the method holding it. A call written over several argument
+  lines filled its row with the whole call, and every row read alike.
+- A call inside a lambda is named after the method around it. It read `<anonymous>`.
+- The hover popup says what it is showing: a query, a query call, a bind argument, a table, a view
+  or a column. It showed the name of an internal class for a Kotlin call, and nothing at all for a
+  query.
+- A column of a table that the migrations only ever alter shows its own name. It showed the first
+  line of the query using it.
+
 ## 0.1.2 - 2026-09-16
 
 The same plugin as 0.1.1. This release carries no change to the code; it exists to restate what
