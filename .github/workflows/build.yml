@@ -250,11 +250,13 @@ jobs:
           RELEASE_NOTE="./build/tmp/release_note.txt"
           ./gradlew getChangelog --unreleased --no-header --quiet --console=plain --output-file=$RELEASE_NOTE
 
-          # An empty section is the failure this guards: it makes a draft with no notes, and the
-          # same section ships as the plugin's change-notes. Nothing else reports it.
+          # Right after a release the section is empty, because the release moved its content under
+          # the new version heading. That is the normal state of main until the next change lands,
+          # so skip the draft rather than fail. A draft with no notes is what the 'changelog' job
+          # prevents, on the pull request that would cause it.
           if [ -z "$(tr -d '[:space:]' < $RELEASE_NOTE)" ]; then
-            echo "the '## Unreleased' section of CHANGELOG.md is empty: there is nothing to release" >&2
-            exit 1
+            echo "::notice::the '## Unreleased' section of CHANGELOG.md is empty, so there is no draft to create"
+            exit 0
           fi
 
           gh release create $VERSION \
