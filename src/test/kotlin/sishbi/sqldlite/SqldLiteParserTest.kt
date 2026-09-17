@@ -135,7 +135,7 @@ class SqldLiteParserTest : ParsingTestCase("", "sq", SqldLiteParserDefinition())
     }
 
     fun testParsesMigrationFileWithNoQueryLabel() {
-        val file = createPsiFile("1", loadFile("1.sqm"))
+        val file = createPsiFile("2", loadFile("2.sqm"))
 
         assertNoErrors(file)
         assertEmpty(labelNames(file))

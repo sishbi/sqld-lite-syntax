@@ -3,6 +3,7 @@ package sishbi.sqldlite
 import com.alecstrong.sql.psi.core.psi.SqlBindParameter
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtValueArgument
 
 /**
  * Finds the value each Kotlin call passes for a bind argument.
@@ -26,6 +27,20 @@ object SqldLiteBindArgumentSites {
 
         return SqldLiteQueryCallSites.of(query.label).mapNotNull { argumentFor(it, query, position) }
     }
+
+    /**
+     * The same values as [of], each one as a navigation target: the argument name where the call
+     * names its arguments, the value itself where it does not, and the class and member holding the
+     * call beside it. [SqldLiteCallSiteTarget] says why the value's own text will not do.
+     */
+    fun navigationTargetsOf(parameter: SqlBindParameter): List<PsiElement> =
+        of(parameter).map { value ->
+            val anchor = argumentNameOf(value) ?: value
+            SqldLiteCallSiteTarget.of(anchor, anchor.text)
+        }
+
+    private fun argumentNameOf(value: PsiElement): PsiElement? =
+        (value.parent as? KtValueArgument)?.getArgumentName()?.referenceExpression
 
     /**
      * Everything that reads [parameter]'s value: the query's own other mentions of the name, and

@@ -47,7 +47,7 @@ class SqldLiteCallerLineMarkerProvider : LineMarkerProviderDescriptor() {
             ?: return null
         if (label.name == null || element != label.identifierLeaf()) return null
 
-        val callers = SqldLiteQueryCallSites.of(label)
+        val callers = SqldLiteQueryCallSites.navigationTargetsOf(label)
         return NavigationGutterIconBuilder
             .create(AllIcons.Actions.Find)
             .setTargets(callers)
