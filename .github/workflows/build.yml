@@ -219,7 +219,7 @@ jobs:
       # after publication, because release immutability forbids changing the assets of a published
       # release. Attaching it here also means the exact artefact can be tested before publishing.
       - name: Download Plugin Distribution
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: plugin-distribution
           path: ./build/distributions
