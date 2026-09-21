@@ -102,7 +102,7 @@ jobs:
       # one full IDE distribution for every build in the verified range, which is around 10 GB
       # against a runner's 25. Every other job downloads one.
       - name: Maximize Build Space
-        uses: jlumbroso/free-disk-space@v1.3.1
+        uses: jlumbroso/free-disk-space@v2.0.0
         with:
           tool-cache: false
           large-packages: false
