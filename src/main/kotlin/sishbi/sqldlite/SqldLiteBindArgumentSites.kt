@@ -36,7 +36,11 @@ object SqldLiteBindArgumentSites {
     fun navigationTargetsOf(parameter: SqlBindParameter): List<PsiElement> =
         of(parameter).map { value ->
             val anchor = argumentNameOf(value) ?: value
-            SqldLiteCallSiteTarget.of(anchor, anchor.text)
+            SqldLiteCallSiteTarget.of(
+                anchor,
+                anchor.text,
+                SqldLiteMessageBundle.message("callsite.type.argument"),
+            )
         }
 
     private fun argumentNameOf(value: PsiElement): PsiElement? =

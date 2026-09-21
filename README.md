@@ -23,9 +23,10 @@ It generates no code; the SqlDelight Gradle plugin still does that.
 - Find Usages on a table or view, listing its whole history: the `CREATE`, every `ALTER` after it,
   and every statement that uses it. The same list comes back from any of those starting points, and
   Go To Declaration from a query reaches the `CREATE`.
-- Cmd-hover and Quick Documentation on a name, saying what it declares: a query as the function a
-  caller writes, a query label as the Kotlin that calls it, a bind argument, and a table, view or
-  column as the statement that creates it.
+- Cmd-hover and Quick Documentation on a name, saying what it declares: a query and a bind argument
+  as the generated function a caller writes, copied from the generated Kotlin so the parameter types
+  and the return type are SqlDelight's own, a query label as the Kotlin that calls it, and a table,
+  view or column as the statement that creates it.
 - A Call Hierarchy for a query, showing the Kotlin functions that call it. It has its own tab in the
   Find Usages panel.
 - A gutter icon on every label listing the same calls, with the count in its tooltip.
