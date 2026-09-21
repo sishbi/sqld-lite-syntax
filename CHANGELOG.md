@@ -4,6 +4,16 @@
 
 ## Unreleased
 
+### Changed
+
+- Cmd-hover and Quick Documentation on a query or a bind argument show the function SqlDelight
+  generated, with its parameter types and its return type, read from the generated Kotlin. Quick
+  Documentation no longer repeats the query statement, which the reader is already looking at.
+
+### Fixed
+
+- A Kotlin argument reached from a bind argument is titled `query argument`, not `query call`.
+
 ## 0.1.4 - 2026-09-17
 
 ### Fixed

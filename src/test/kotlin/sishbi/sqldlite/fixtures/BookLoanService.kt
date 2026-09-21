@@ -22,9 +22,12 @@ class BookLoanService(private val bookLoansQueries: BookLoansQueries) {
         bookLoansQueries.markRequestedLoansAsCancelled(memberId)
     }
 
-    fun openLoans(): List<String> = bookLoansQueries.findMembersWithOpenLoans()
+    fun openLoans(): List<FindMembersWithOpenLoans> =
+        bookLoansQueries.findMembersWithOpenLoans().executeAsList()
 
-    fun loan(loanId: Long): String? = bookLoansQueries.findByLoanId(loan_id = loanId)
+    fun loan(loanId: Long): BookLoan? =
+        bookLoansQueries.findByLoanId(loan_id = loanId).executeAsOneOrNull()
 
-    fun loansOf(memberId: Long): List<String> = bookLoansQueries.findByMemberId(memberId)
+    fun loansOf(memberId: Long): List<BookLoan> =
+        bookLoansQueries.findByMemberId(memberId).executeAsList()
 }

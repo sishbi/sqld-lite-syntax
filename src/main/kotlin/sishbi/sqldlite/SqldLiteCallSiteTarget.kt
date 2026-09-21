@@ -32,6 +32,8 @@ class SqldLiteCallSiteTarget private constructor(
     val signature: String?,
     /** The enclosing class, qualified, or the package when the call sits at the top level. */
     val qualifiedContainer: String?,
+    /** What the target is, as the documentation popup titles it: a call, or one of its arguments. */
+    val kind: String,
 ) : FakePsiElement() {
 
     /** The callee, so the caret lands on the call rather than on the enclosing declaration. */
@@ -50,8 +52,12 @@ class SqldLiteCallSiteTarget private constructor(
         /**
          * A target that navigates to [anchor] and shows [name], or [anchor] itself when it has no
          * enclosing declaration to name. Nothing is gained by a wrapper that adds nothing.
+         *
+         * [kind] is what the documentation popup titles the target. It is passed in because the
+         * same wrapper carries a call and the arguments that call passes, and titling an argument
+         * `query call` named it after the thing holding it.
          */
-        fun of(anchor: PsiElement, name: String): PsiElement {
+        fun of(anchor: PsiElement, name: String, kind: String): PsiElement {
             val container = containerOf(anchor) ?: return anchor
             val shortName = StringUtil.shortenTextWithEllipsis(name, NAME_LIMIT, 0, true)
             return SqldLiteCallSiteTarget(
@@ -59,6 +65,7 @@ class SqldLiteCallSiteTarget private constructor(
                 PresentationData(shortName, container, anchor.getIcon(0), null),
                 signatureOf(anchor),
                 qualifiedContainerOf(anchor),
+                kind,
             )
         }
 
@@ -86,28 +93,15 @@ class SqldLiteCallSiteTarget private constructor(
                 .ifEmpty { null }
 
         /**
-         * The function holding [element] as it is written, without its body: `fun record(id: Long):
-         * Unit`. The documentation popup highlights it with Kotlin's own lexer, so a reader sees
-         * the same declaration the editor shows.
+         * The function holding [element], as [SqldLiteKotlinSignature] writes it.
          *
          * Read here, when the target is built, because a popup is painted with no read action.
          */
-        private fun signatureOf(element: PsiElement): String? {
-            val function = owningDeclarationsOf(element)
+        private fun signatureOf(element: PsiElement): String? =
+            owningDeclarationsOf(element)
                 .filterIsInstance<KtFunction>()
-                .firstOrNull() ?: return null
-            val body = function.bodyExpression
-            val header = body
-                ?.let { function.text.take(it.startOffsetInParent) }
-                ?: function.text
-            return header
-                .lines()
-                .joinToString(" ") { it.trim() }
-                .trim()
-                .removeSuffix("=")
-                .trim()
-                .ifEmpty { null }
-        }
+                .firstOrNull()
+                ?.let { SqldLiteKotlinSignature.of(it) }
 
         /**
          * The class holding [element] as `com.example.BookLoanService`, which is how Kotlin's own

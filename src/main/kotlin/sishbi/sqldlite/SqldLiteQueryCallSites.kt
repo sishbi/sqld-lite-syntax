@@ -41,7 +41,11 @@ object SqldLiteQueryCallSites {
     fun navigationTargetsOf(label: SqldLiteStmtIdentifierMixin): List<PsiElement> =
         of(label).map { call ->
             val callee = call.calleeExpression ?: call
-            SqldLiteCallSiteTarget.of(callee, callee.text)
+            SqldLiteCallSiteTarget.of(
+                callee,
+                callee.text,
+                SqldLiteMessageBundle.message("callsite.type"),
+            )
         }
 
     private fun search(label: SqldLiteStmtIdentifierMixin): List<KtCallExpression> {
