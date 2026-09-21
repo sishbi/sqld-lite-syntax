@@ -11,19 +11,22 @@ import com.alecstrong.sql.psi.core.psi.SqlTypes
 import com.intellij.lang.Language
 import com.intellij.lang.documentation.AbstractDocumentationProvider
 import com.intellij.lang.documentation.DocumentationMarkup
+import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.richcopy.HtmlSyntaxInfoUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
+import org.jetbrains.kotlin.idea.KotlinLanguage
 
 /**
  * What the IDE shows for a `.sq` element, on cmd-hover and under Quick Documentation.
  *
- * Both read the same declaration line: a query as `findById(:id)`, a column as its column
- * definition, a table as the head of the statement that declares it. Quick Documentation adds the
- * doc comment and the statement itself, highlighted by this language's lexer. The hover stays one
- * line, the way Kotlin's does: a hover inside a `.sq` file that repeats the query under the caret
- * tells the reader nothing.
+ * Both read the same declaration line: a query as its name, a column as its column definition, a
+ * table as the head of the statement that declares it. A query and a bind argument also show the
+ * function SqlDelight generated, which is the part of the pair not on screen. Quick Documentation
+ * adds the doc comment, and for a schema name the statement itself.
+ *
+ * Neither popup repeats the query under the caret. The reader is looking at it.
  *
  * Without a provider the platform falls back to `SingleTargetElementInfo`, which can only write
  * `query "findAllEvents" [AdminAppAudit.sq]`.
@@ -49,7 +52,7 @@ class SqldLiteDocumentationProvider : AbstractDocumentationProvider() {
         return render(
             Subject(
                 element = anchor,
-                kind = SqldLiteMessageBundle.message("callsite.type"),
+                kind = element.kind,
                 declaration = element.name.orEmpty(),
                 // The enclosing function, highlighted by Kotlin's own lexer rather than written
                 // out as grey text: it is a declaration, and it reads as one in the editor. A grey
@@ -97,24 +100,30 @@ class SqldLiteDocumentationProvider : AbstractDocumentationProvider() {
             else -> null
         }
 
-    /** A query, as the generated function reads: its name and the arguments a caller passes. */
+    /**
+     * A query, as the function SqlDelight generated from it. The reader is looking at the statement
+     * already, so repeating it says nothing; the generated declaration is the part not on screen.
+     *
+     * The bind arguments the query names are the fallback, for a project that has never been built.
+     */
     private fun querySubject(label: SqldLiteStmtIdentifierMixin): Subject? {
         val name = label.name ?: return null
-        val arguments = SqldLiteQuery
-            .of(label)
-            .parameterNames
-            .filter { it.isNotEmpty() }
-            .joinToString(", ") { ":$it" }
+        val signature = SqldLiteGeneratedQuery.signatureOf(label)
         return Subject(
             element = label,
             kind = SqldLiteMessageBundle.message("usages.type.query"),
-            declaration = "$name($arguments)",
-            body = statementsUnder(label).ifEmpty { null },
+            declaration = if (signature == null) "$name(${bindArgumentsOf(label)})" else name,
+            body = null,
             comment = docComment(label),
+            signature = signature,
+            signatureLanguage = KotlinLanguage.INSTANCE,
         )
     }
 
-    /** A bind argument, with the query that declares it behind it. */
+    /**
+     * A bind argument, with the generated function behind it: the reader learns which parameter the
+     * argument becomes, and under what Kotlin name, which the query's own text does not say.
+     */
     private fun bindArgumentSubject(parameter: SqldLiteBindParameterMixin): Subject? {
         val name = parameter.name ?: return null
         val label = SqldLiteQuery.containing(parameter)?.label
@@ -122,10 +131,20 @@ class SqldLiteDocumentationProvider : AbstractDocumentationProvider() {
             element = parameter,
             kind = SqldLiteMessageBundle.message("usages.type.bind.argument"),
             declaration = ":$name",
-            body = label?.let { statementsUnder(it).ifEmpty { null } },
+            body = null,
             comment = null,
+            signature = label?.let { SqldLiteGeneratedQuery.signatureOf(it) },
+            signatureLanguage = KotlinLanguage.INSTANCE,
         )
     }
+
+    /** What a caller passes, named as the query names it: `:member_id, :status`. */
+    private fun bindArgumentsOf(label: SqldLiteStmtIdentifierMixin): String =
+        SqldLiteQuery
+            .of(label)
+            .parameterNames
+            .filter { it.isNotEmpty() }
+            .joinToString(", ") { ":$it" }
 
     /**
      * A table, view or column name: the statement that declares it. A column shows its own column
@@ -174,13 +193,6 @@ class SqldLiteDocumentationProvider : AbstractDocumentationProvider() {
             else -> null
         }
 
-    /** Everything between [label] and the next label, which is the query's own text. */
-    private fun statementsUnder(label: SqldLiteStmtIdentifierMixin): String =
-        generateSequence(label.nextSibling) { it.nextSibling }
-            .takeWhile { it !is SqldLiteStmtIdentifierMixin }
-            .joinToString("") { it.text }
-            .trim()
-
     /** The statement holding [element]: the ancestor the statement list holds directly. */
     private fun statementOf(element: PsiElement): PsiElement? {
         val statements = PsiTreeUtil.getParentOfType(element, SqlStmtList::class.java) ?: return null
@@ -226,7 +238,7 @@ class SqldLiteDocumentationProvider : AbstractDocumentationProvider() {
         // platform's own proportional font applies, and `fun loan(loanId: Long)` reads as prose.
         subject.signature?.let {
             html.append("<pre>")
-            highlight(html, subject, it, subject.signatureLanguage)
+            appendSignature(html, subject, it)
             html.append("</pre>")
         }
         if (withBody) {
@@ -250,6 +262,33 @@ class SqldLiteDocumentationProvider : AbstractDocumentationProvider() {
         return html.toString()
     }
 
+    /**
+     * A Kotlin declaration, with the modifiers in front of it coloured as keywords.
+     *
+     * Kotlin's modifiers are soft keywords: the lexer reads `public` as an identifier, because it is
+     * one anywhere else. Lexing the whole line therefore left `public` in plain text beside an
+     * orange `fun`. Kotlin's own popup colours both, so this one does too.
+     */
+    private fun appendSignature(html: StringBuilder, subject: Subject, signature: String) {
+        // Splitting and rejoining on a space loses nothing, so a wrapped declaration keeps its line
+        // breaks: they sit inside the words, not between them.
+        val words = signature.split(" ")
+        val modifiers = words.takeWhile { it in SOFT_MODIFIERS }
+        modifiers.forEach {
+            // The platform's own keyword colour, not this plugin's: the line is Kotlin, so it takes
+            // the colour the Kotlin scheme gives a keyword.
+            HtmlSyntaxInfoUtil.appendStyledSpan(
+                html,
+                DefaultLanguageHighlighterColors.KEYWORD,
+                it,
+                SATURATION,
+            )
+            html.append(" ")
+        }
+        val rest = words.drop(modifiers.size).joinToString(" ")
+        highlight(html, subject, rest, subject.signatureLanguage)
+    }
+
     private fun highlight(html: StringBuilder, subject: Subject, text: String, language: Language) {
         HtmlSyntaxInfoUtil.appendHighlightedByLexerAndEncodedAsHtmlCodeSnippet(
             html,
@@ -263,5 +302,26 @@ class SqldLiteDocumentationProvider : AbstractDocumentationProvider() {
     private companion object {
         /** Full colour, as the editor paints it. */
         private const val SATURATION = 1.0f
+
+        /** The Kotlin modifiers a declaration can start with, none of which the lexer knows. */
+        private val SOFT_MODIFIERS = setOf(
+            "public",
+            "private",
+            "protected",
+            "internal",
+            "abstract",
+            "final",
+            "open",
+            "override",
+            "sealed",
+            "suspend",
+            "inline",
+            "external",
+            "infix",
+            "operator",
+            "tailrec",
+            "expect",
+            "actual",
+        )
     }
 }

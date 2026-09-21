@@ -16,7 +16,8 @@ class SqldLiteDocumentationTest : SqldLitePlatformTestCase() {
 
     override fun getTestDataPath() = "src/test/resources"
 
-    fun testShowsTheQueryBehindALabel() {
+    /** With nothing generated to read, the bind arguments the query names are all there is. */
+    fun testShowsTheBindArgumentsOfAQueryThatGeneratedNothing() {
         val label = labelIn(
             "Loans.sq",
             "/**\n" +
@@ -36,29 +37,116 @@ class SqldLiteDocumentationTest : SqldLitePlatformTestCase() {
         assertFalse(hover, hover.contains("SELECT"))
         assertFalse(hover, hover.contains("Every loan"))
 
-        // Quick Documentation adds the doc comment and the query itself.
+        // Quick Documentation adds the doc comment, and never the query under the caret.
         val documentation = requireNotNull(provider.generateDoc(label, label))
         assertTrue(documentation, documentation.contains("Every loan a member holds."))
-        assertTrue(documentation, documentation.contains("SELECT"))
-        assertTrue(documentation, documentation.contains("book_loans"))
+        assertFalse(documentation, documentation.contains("SELECT"))
     }
 
-    fun testShowsTheQueryABindArgumentBelongsTo() {
-        myFixture.copyFileToProject("BookLoans.sq")
-        val file = myFixture.configureFromTempProjectFile("BookLoans.sq")
+    /**
+     * The generated function is the part of the pair not on screen, so both popups show it, copied
+     * as SqlDelight wrote it rather than worked out here.
+     */
+    fun testShowsTheGeneratedFunctionBehindALabel() {
+        generatedQueriesClass()
+        val label = labelIn(
+            "Loans.sq",
+            "findByMemberId:\nSELECT * FROM book_loans WHERE member_id = :member_id;\n",
+        )
+
+        // One parameter stays on the line, which is what makes a wrapped list mean something.
+        assertEquals(
+            "fun findByMemberId(memberId: Long): Query<BookLoan>",
+            SqldLiteGeneratedQuery.signatureOf(label as SqldLiteStmtIdentifierMixin),
+        )
+
+        val hover = requireNotNull(provider.getQuickNavigateInfo(label, label))
+        assertTrue(hover, hover.contains("query:"))
+        assertTrue(hover, hover.contains("memberId"))
+        assertTrue(hover, hover.contains("Query"))
+        assertTrue(hover, hover.contains("BookLoan"))
+        // The bind-argument spelling gives way to the parameter the caller actually passes.
+        assertFalse(hover, hover.contains("member_id"))
+        // The mapper overload is machinery, not the function a reader calls.
+        assertFalse(hover, hover.contains("mapper"))
+
+        // Quick Documentation shows the same declaration, and still not the query.
+        val documentation = requireNotNull(provider.generateDoc(label, label))
+        assertTrue(documentation, documentation.contains("memberId"))
+        assertFalse(documentation, documentation.contains("SELECT"))
+    }
+
+    /** A bind argument shows which generated parameter it becomes, and under what Kotlin name. */
+    fun testShowsTheGeneratedParameterABindArgumentBecomes() {
+        generatedQueriesClass()
+        val query = myFixture.addFileToProject(
+            "Loans.sq",
+            "findByMemberId:\nSELECT * FROM book_loans WHERE member_id = :member_id;\n",
+        )
         val parameter = PsiTreeUtil
-            .findChildrenOfType(file, SqldLiteBindParameterMixin::class.java)
-            .first { it.name == "loan_id" }
+            .findChildrenOfType(query, SqldLiteBindParameterMixin::class.java)
+            .first { it.name == "member_id" }
 
         // The highlighter writes one span per token, so the name and its `:` are never adjacent.
         val hover = requireNotNull(provider.getQuickNavigateInfo(parameter, parameter))
-        assertTrue(hover, hover.contains("loan_id"))
-        assertTrue(hover, hover.contains("BookLoans.sq"))
-        assertFalse(hover, hover.contains("UPDATE"))
+        assertTrue(hover, hover.contains("bind argument"))
+        assertTrue(hover, hover.contains("member_id"))
+        assertTrue(hover, hover.contains("memberId"))
+        assertTrue(hover, hover.contains("Loans.sq"))
 
-        // The query it fills is behind Quick Documentation.
+        // The query it fills is on screen already, so neither popup repeats it.
         val documentation = requireNotNull(provider.generateDoc(parameter, parameter))
-        assertTrue(documentation, documentation.contains("UPDATE"))
+        assertFalse(documentation, documentation.contains("SELECT"))
+    }
+
+    /**
+     * The generated declaration only, wrapped as it is written and indented from its own first
+     * line, the way Kotlin's own popup wraps a function.
+     *
+     * SqlDelight writes a doc comment above the function and one parameter to a line, so the text
+     * of the function holds a sentence, the indentation of the class around it, and a trailing
+     * comma.
+     */
+    fun testShowsTheGeneratedDeclarationOnly() {
+        myFixture.addFileToProject(
+            "LoansQueries.kt",
+            "package com.example.library\n\n" +
+                "class LoansQueries {\n" +
+                "    /**\n" +
+                "     * @return The number of rows updated.\n" +
+                "     */\n" +
+                "    public fun create(\n" +
+                "        email: String,\n" +
+                "        userId: Long,\n" +
+                "    ): QueryResult<Long> = error(\"\")\n" +
+                "}\n",
+        )
+        val label = labelIn("Loans.sq", "create:\nINSERT INTO audit VALUES (:email, :user_id);\n")
+
+        // The signature itself, not the popup: the popup writes one span per token, so no assertion
+        // on its HTML can show how the declaration is laid out.
+        assertEquals(
+            "public fun create(\n    email: String,\n    userId: Long\n): QueryResult<Long>",
+            SqldLiteGeneratedQuery.signatureOf(label as SqldLiteStmtIdentifierMixin),
+        )
+
+        // `public` is a soft keyword, so the Kotlin lexer reads it as an identifier and leaves it
+        // in plain text beside a coloured `fun`. The popup colours it itself.
+        val hover = requireNotNull(provider.getQuickNavigateInfo(label, label))
+        assertTrue(hover, Regex("<span[^>]*>public</span>").containsMatchIn(hover))
+    }
+
+    /** Stands in for what the SqlDelight Gradle plugin writes from `Loans.sq`. */
+    private fun generatedQueriesClass() {
+        myFixture.addFileToProject(
+            "LoansQueries.kt",
+            "package com.example.library\n\n" +
+                "class LoansQueries {\n" +
+                "    fun findByMemberId(memberId: Long): Query<BookLoan> = error(\"\")\n" +
+                "    fun <T : Any> findByMemberId(memberId: Long, mapper: (Long) -> T): Query<T> =\n" +
+                "        error(\"\")\n" +
+                "}\n",
+        )
     }
 
     /** A use of a table name shows the statement that declares it, which may be another file. */
@@ -180,6 +268,17 @@ class SqldLiteDocumentationTest : SqldLitePlatformTestCase() {
         assertTrue(hover, hover.contains("com.example.library.Caller"))
         // Its body is not part of the declaration.
         assertFalse(hover, hover.contains("bookLoansQueries"))
+
+        // The value that call passes is an argument, not a call, and is titled as one.
+        val parameter = PsiTreeUtil
+            .findChildrenOfType(label.containingFile, SqldLiteBindParameterMixin::class.java)
+            // `markRequestedLoansAsCancelled` names one too; the last is `findByMemberId`'s.
+            .last { it.name == "member_id" }
+        val argument = SqldLiteBindArgumentSites.navigationTargetsOf(parameter).single()
+
+        val argumentHover = requireNotNull(provider.getQuickNavigateInfo(argument, argument))
+        assertTrue(argumentHover, argumentHover.contains("query argument"))
+        assertFalse(argumentHover, argumentHover.contains("query call"))
     }
 
     private val provider = SqldLiteDocumentationProvider()
