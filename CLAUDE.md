@@ -114,6 +114,13 @@ https://jb.gg/intellij-platform-kotlin-stdlib
   never consulted. `PsiElementBase.getPresentation()` returns null, which is why a sql-psi name
   element showed no icon. `SqlNamedElementImpl` now overrides `getPresentation()`, which is the only
   place it can go.
+- Kotlin's modifiers are soft keywords, so a lexer reads `public` as an identifier.
+  `HtmlSyntaxInfoUtil.appendHighlightedByLexerAndEncodedAsHtmlCodeSnippet` therefore leaves every
+  modifier in plain text beside a coloured `fun`. Kotlin's own popup colours them because it renders
+  from the descriptor, not from the lexer. `SqldLiteDocumentationProvider.appendSignature` writes
+  the leading modifiers itself, in `DefaultLanguageHighlighterColors.KEYWORD`.
+- A `KtFunction`'s text holds its doc comment, because the comment is a child of the function.
+  Anything reading `function.text` to show a declaration shows the comment too.
 - The icon inside that presentation comes from `ElementBase.getIcon`, which asks the `iconProvider`
   extension point and otherwise falls back to the icon of the containing file.
   `SqldLiteIconProvider` is what puts a database icon on a table, view or column name.
