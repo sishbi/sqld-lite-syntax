@@ -44,9 +44,10 @@ Highlighting, and the Editor | Color Scheme | SqlDelight page that names every c
 
 ![The SqlDelight colour scheme page, with a .sq preview](docs/images/colour-scheme-page.png)
 
-Cmd-hover on a query call in Kotlin names the query it runs, and the `.sq` file holding it:
+Cmd-hover on a query call in Kotlin names the query it runs, the function SqlDelight generated from
+it, and the `.sq` file holding it:
 
-![A hover popup over a Kotlin query call, showing the query and its file](docs/images/query-tooltip.png)
+![A hover popup over a Kotlin query call, showing the generated function and the .sq file](docs/images/query-tooltip.png)
 
 Cmd-hover on a query label names the Kotlin function that calls it, and the class that function
 belongs to:
@@ -60,6 +61,16 @@ Cmd-hover on a table name shows the statement that creates it, and the migration
 Cmd-hover on a column name shows its type, and the migration that declares it:
 
 ![A hover popup over a column name, showing its type and migration file](docs/images/column-definition-tooltip.png)
+
+Cmd-hover on a bind argument names the Kotlin argument matched to it, and the function that passes
+it:
+
+![A hover popup over a bind argument, showing the Kotlin argument and the function passing it](docs/images/bind-argument-tooltip.png)
+
+Quick Documentation on a query label shows the function SqlDelight generated from the query, laid
+out one parameter to a line:
+
+![Quick Documentation on a query label, showing the generated function](docs/images/query-quick-documentation.png)
 
 Quick Documentation on the same table name adds the `CREATE TABLE` statement itself, coloured as
 the editor colours it:
