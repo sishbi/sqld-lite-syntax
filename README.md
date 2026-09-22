@@ -72,6 +72,11 @@ out one parameter to a line:
 
 ![Quick Documentation on a query label, showing the generated function](docs/images/query-quick-documentation.png)
 
+Quick Documentation on a bind argument shows the generated function that takes it, so the reader
+sees the parameter it becomes and the type SqlDelight gave it:
+
+![Quick Documentation on a bind argument, showing the generated function that takes it](docs/images/bind-argument-quick-documentation.png)
+
 Quick Documentation on the same table name adds the `CREATE TABLE` statement itself, coloured as
 the editor colours it:
 
