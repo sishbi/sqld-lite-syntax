@@ -183,6 +183,8 @@ open class SqlCoreEnvironment(sourceFolders: List<Path>, dependencies: List<Path
     fileIndex.iterateContent { file ->
       val psiFile = psiManager.findFile(file) ?: return@iterateContent true
       if (klass.isInstance(psiFile)) {
+        // isInstance is the check the compiler cannot see through, so the cast always holds.
+        @Suppress("UNCHECKED_CAST")
         action(psiFile as T)
       }
       return@iterateContent true

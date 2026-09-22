@@ -126,7 +126,9 @@ abstract class FixturesTest(
 }
 
 fun File.toParameter(): List<Array<out Any>> =
-  listFiles()?.filter { it.isDirectory }?.map { arrayOf(it.name, it) } ?: emptyList()
+  // The type argument is explicit because String and File share only an intersection type, which
+  // a reified parameter cannot represent. Kotlin 2.6 makes inferring one an error.
+  listFiles()?.filter { it.isDirectory }?.map { arrayOf<Any>(it.name, it) } ?: emptyList()
 
 fun loadFolderFromResources(target: File) =
   object : ReadOnlyProperty<Any?, List<Array<out Any>>> {

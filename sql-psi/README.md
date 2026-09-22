@@ -43,6 +43,16 @@ The fork stays in place as the tracking mirror, so the route is:
 A change this plugin needs and upstream does not can be made here directly. Note it in this file so
 the next merge does not silently drop it.
 
+### Changes made here
+
+Three warning fixes in the test sources, none of which change behaviour:
+
+- `SqlCoreEnvironment.forSourceFiles` suppresses `UNCHECKED_CAST`. The `isInstance` check above the
+  cast is what makes it safe.
+- `File.toParameter` in `FixturesTest.kt` names the array type argument. Inferring it produced an
+  intersection type, which Kotlin 2.6 rejects.
+- `TestFileType.getIcon` returns `AllIcons.FileTypes.Text`. `AllIcons.Icon` is deprecated.
+
 ## Building
 
 Nothing to do. `sql.bnf` and `SqlLexer.flex` generate the parser and the lexer into `build/`, so

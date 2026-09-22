@@ -58,7 +58,7 @@ object TestHeadlessParser {
 private object TestLanguage : Language("Test")
 
 private object TestFileType : LanguageFileType(TestLanguage) {
-  override fun getIcon() = AllIcons.Icon
+  override fun getIcon() = AllIcons.FileTypes.Text
 
   override fun getName() = "Test File"
 

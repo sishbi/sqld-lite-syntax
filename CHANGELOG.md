@@ -4,6 +4,8 @@
 
 ## Unreleased
 
+## 0.2.0 - 2026-09-22
+
 ### Changed
 
 - Cmd-hover and Quick Documentation on a query or a bind argument show the function SqlDelight
