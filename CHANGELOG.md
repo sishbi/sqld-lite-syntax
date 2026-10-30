@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Supports IntelliJ IDEA 2026.3 (build 263).
+
 ## 0.2.0 - 2026-09-22
 
 ### Changed
