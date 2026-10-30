@@ -1,4 +1,5 @@
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.intellij.platform.gradle.models.ProductRelease
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.extensions.intellijPlatform
@@ -140,8 +141,11 @@ intellijPlatform {
         ides {
             // Every release build from the declared floor upwards. Verifying only the compile
             // target proves nothing about the older builds since-build promises to support.
+            // EAP as well as release, because until-build names a build JetBrains may not have
+            // released yet, and the cap is only honest if that build was checked.
             select {
                 types = listOf(IntelliJPlatformType.IntellijIdeaUltimate)
+                channels = listOf(ProductRelease.Channel.RELEASE, ProductRelease.Channel.EAP)
                 sinceBuild = libs.versions.intellijIdeaSinceBuild
                 untilBuild = libs.versions.intellijIdeaUntilBuild
             }

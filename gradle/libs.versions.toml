@@ -17,7 +17,7 @@ intellijIdea = "2025.2"
 # checks. 252 is IntelliJ 2025.2. The floor is set by the bundled Kotlin plugin's API; the SQL PSI
 # is built here, against the same platform as the rest of the plugin.
 intellijIdeaSinceBuild = "252"
-intellijIdeaUntilBuild = "262.*"
+intellijIdeaUntilBuild = "263.*"
 # Only feeds GrammarKit's own generator classpath at build time. Unrelated to what the plugin
 # targets or ships against.
 grammarKitGenerator = "233.14808.21"
